@@ -237,7 +237,9 @@ func TestOdeintErrors(t *testing.T) {
 	if e := math.Abs(y.At(2, 0) - back.Y[len(back.Y)-1][0]); e > 1e-8 {
 		t.Errorf("backward odeint error %g", e)
 	}
-	_, _, err = Odeint(func(_ float64, y, d []float64) { d[0] = 1 / (1 - y[0]) }, []float64{0}, []float64{0, 1}, nil)
+	// A large MxStep so that the step-size floor, not the step budget, stops
+	// it on every architecture (s390x reached 500 steps first).
+	_, _, err = Odeint(func(_ float64, y, d []float64) { d[0] = 1 / (1 - y[0]) }, []float64{0}, []float64{0, 1}, &OdeintOptions{MxStep: 1000000})
 	if !errors.Is(err, ErrStepTooSmall) {
 		t.Errorf("blow-up: %v", err)
 	}

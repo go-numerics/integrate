@@ -104,20 +104,19 @@ var odeProblems = map[string]odeProblem{
 }
 
 type odeRecord struct {
-	Problem string      `json:"problem"`
-	Method  string      `json:"method"`
-	RTol    float64     `json:"rtol"`
-	ATol    float64     `json:"atol"`
-	Jac     bool        `json:"jac"`
-	Status  int         `json:"status"`
-	NFev    int         `json:"nfev"`
-	NJev    int         `json:"njev"`
-	NLU     int         `json:"nlu"`
-	NSteps  int         `json:"nsteps"`
-	YEnd    []float64   `json:"y_end"`
-	Ref     []float64   `json:"ref"`
-	TFirst  []float64   `json:"t_first"`
-	Extra   interface{} `json:"-"`
+	Problem string    `json:"problem"`
+	Method  string    `json:"method"`
+	RTol    float64   `json:"rtol"`
+	ATol    float64   `json:"atol"`
+	Jac     bool      `json:"jac"`
+	Status  int       `json:"status"`
+	NFev    int       `json:"nfev"`
+	NJev    int       `json:"njev"`
+	NLU     int       `json:"nlu"`
+	NSteps  int       `json:"nsteps"`
+	YEnd    []float64 `json:"y_end"`
+	Ref     []float64 `json:"ref"`
+	TFirst  []float64 `json:"t_first"`
 }
 
 type odeFixture struct {
