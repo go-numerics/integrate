@@ -1,4 +1,10 @@
+<p align="center"><img src="https://raw.githubusercontent.com/go-numerics/brand/main/social/go-numerics.png" alt="go-numerics/integrate" width="720"></p>
+
 # integrate
+
+[![Docs](https://img.shields.io/badge/docs-hugo%20%2B%20hextra-7445AD)](https://go-numerics.github.io/docs/latest/integrate/)
+[![pkg.go.dev](https://img.shields.io/badge/pkg.go.dev-integrate-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/go-numerics/integrate)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-7445AD)](LICENSE)
 
 Numerical integration and ODE solvers in pure Go (`CGO_ENABLED=0`): adaptive
 quadrature (QUADPACK), fixed and sample rules, multiple integrals, and initial
@@ -6,6 +12,8 @@ value problems with RK45, RK23, DOP853, Radau, BDF and automatic stiffness
 switching — the functionality of `scipy.integrate` for the Go scientific
 stack ([go-ndarray](https://github.com/go-ndarray/ndarray), go-plot,
 go-notebook), with the same algorithms, defaults and diagnostics.
+
+🌐 **[Website](https://go-numerics.github.io)** · 📚 **[Documentation](https://go-numerics.github.io/docs/latest/integrate/)**
 
 ```
 go get github.com/go-numerics/integrate
