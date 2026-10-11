@@ -1,0 +1,4 @@
+*.out
+*.test
+*.prof
+__pycache__/
