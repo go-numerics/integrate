@@ -182,7 +182,7 @@ func Romb(y []float64, dx float64) (float64, error) {
 		step >>= 1
 		for j := 1; j <= i; j++ {
 			prev := R[i][j-1]
-			R[i][j] = prev + (prev-R[i-1][j-1])/(float64(int(1)<<(2*j))-1)
+			R[i][j] = prev + (prev-R[i-1][j-1])/(math.Ldexp(1, 2*j)-1) // (1 << 2j) - 1, exact; an int shift overflows on 32-bit targets
 		}
 		h /= 2
 	}
