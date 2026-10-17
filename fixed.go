@@ -161,34 +161,46 @@ func Romb(y []float64, dx float64) (float64, error) {
 	if nint < 1 || 1<<k != nint {
 		return 0, samplesErr("Romb needs 2^k + 1 samples, got %d", nsamps)
 	}
-	R := make(map[[2]int]float64)
+	// SciPy's table R[(i, j)], one row per level.
+	R := make([][]float64, k+1)
+	for i := range R {
+		R[i] = make([]float64, i+1)
+	}
 	h := float64(nint) * dx
-	R[[2]int{0, 0}] = (y[0] + y[nint]) / 2 * h
+	R[0][0] = (y[0] + y[nint]) / 2 * h
 	start, stop, step := nint, nint, nint
 	for i := 1; i <= k; i++ {
 		start >>= 1
-		s := 0.0
-		for j := start; j < stop; j += step {
-			s += y[j]
-		}
-		R[[2]int{i, 0}] = 0.5 * (R[[2]int{i - 1, 0}] + h*s)
+		// y[start:stop:step].sum(), summed as NumPy sums.
+		st := step
+		s := npSum((stop-start+st-1)/st, func(lo int, dst []float64) {
+			for q := range dst {
+				dst[q] = y[start+(lo+q)*st]
+			}
+		})
+		R[i][0] = 0.5 * (R[i-1][0] + float64(h*s))
 		step >>= 1
 		for j := 1; j <= i; j++ {
-			prev := R[[2]int{i, j - 1}]
-			R[[2]int{i, j}] = prev + (prev-R[[2]int{i - 1, j - 1}])/(float64(int(1)<<(2*j))-1)
+			prev := R[i][j-1]
+			R[i][j] = prev + (prev-R[i-1][j-1])/(math.Ldexp(1, 2*j)-1) // (1 << 2j) - 1, exact; an int shift overflows on 32-bit targets
 		}
 		h /= 2
 	}
-	return R[[2]int{k, k}], nil
+	return R[k][k], nil
 }
 
 // checkXY validates a sample vector against optional abscissae.
 func checkXY(y, x []float64, need int, name string) error {
-	if len(y) < need {
-		return samplesErr("%s needs at least %d samples, got %d", name, need, len(y))
+	return checkLen(len(y), x, need, name)
+}
+
+// checkLen is checkXY for n samples.
+func checkLen(n int, x []float64, need int, name string) error {
+	if n < need {
+		return samplesErr("%s needs at least %d samples, got %d", name, need, n)
 	}
-	if x != nil && len(x) != len(y) {
-		return samplesErr("%s: x has %d entries, y has %d", name, len(x), len(y))
+	if x != nil && len(x) != n {
+		return samplesErr("%s: x has %d entries, y has %d", name, len(x), n)
 	}
 	return nil
 }
@@ -207,11 +219,38 @@ func Trapezoid(y, x []float64, dx float64) (float64, error) {
 	if err := checkXY(y, x, 0, "Trapezoid"); err != nil {
 		return 0, err
 	}
-	s := 0.0
-	for i := 0; i+1 < len(y); i++ {
-		s += spacing(x, dx, i) * (y[i] + y[i+1]) / 2
+	if len(y) < 2 {
+		return 0, nil
 	}
-	return s, nil
+	// SciPy: add.reduce(d * (y[1:] + y[:-1]) / 2.0).
+	return npSum(len(y)-1, func(lo int, dst []float64) { trapezoidTerms(y, x, dx, lo, dst) }), nil
+}
+
+// trapezoidTerms sets dst[k] to SciPy's term d·(y[i+1] + y[i])/2 for
+// i = lo+k.
+func trapezoidTerms(y, x []float64, dx float64, lo int, dst []float64) {
+	y0, y1 := y[lo:lo+len(dst)], y[lo+1:lo+1+len(dst)]
+	if x == nil {
+		for k := range dst {
+			dst[k] = float64(dx*(y1[k]+y0[k])) / 2
+		}
+		return
+	}
+	x0, x1 := x[lo:lo+len(dst)], x[lo+1:lo+1+len(dst)]
+	for k := range dst {
+		dst[k] = float64((x1[k]-x0[k])*(y1[k]+y0[k])) / 2
+	}
+}
+
+// trapezoidLane is Trapezoid for a validated lane, with its terms formed in
+// scratch (at least len(y) long) instead of in npSum's blocks.
+func trapezoidLane(y, x []float64, dx float64, scratch []float64) float64 {
+	if len(y) < 2 {
+		return 0
+	}
+	t := scratch[:len(y)-1]
+	trapezoidTerms(y, x, dx, 0, t)
+	return 0.0 + pairwiseSlice(t)
 }
 
 // CumulativeTrapezoid returns the running trapezoidal integral of y. Without
@@ -222,14 +261,22 @@ func CumulativeTrapezoid(y, x []float64, dx float64, initial bool) ([]float64, e
 	if err := checkXY(y, x, 1, "CumulativeTrapezoid"); err != nil {
 		return nil, err
 	}
-	out := make([]float64, 0, len(y))
+	// SciPy: cumsum(d * (y[1:] + y[:-1]) / 2.0), a running sum.
+	n := len(y) - 1
+	off := 0
 	if initial {
-		out = append(out, 0)
+		off = 1 // out[0] = 0
 	}
+	out := make([]float64, off+n)
 	s := 0.0
-	for i := 0; i+1 < len(y); i++ {
-		s += spacing(x, dx, i) * (y[i] + y[i+1]) / 2
-		out = append(out, s)
+	for i := range n {
+		t := float64(spacing(x, dx, i)*(y[i+1]+y[i])) / 2
+		if i == 0 {
+			s = t // cumsum starts from the first term, not from 0.0
+		} else {
+			s += t
+		}
+		out[off+i] = s
 	}
 	return out, nil
 }
@@ -243,25 +290,76 @@ func div0(n, d float64) float64 {
 	return n / d
 }
 
-// basicSimpson applies Simpson's rule on the panels starting at the even
-// indices 0, 2, ..., stop-2 (SciPy's _basic_simpson with start 0).
-func basicSimpson(y, x []float64, dx float64, stop int) float64 {
-	s := 0.0
+// simpsonTerms sets dst[k] to SciPy's _basic_simpson term of the panel
+// starting at index i = 2(lo+k): y[i] + 4y[i+1] + y[i+2] without abscissae,
+// the non-uniform panel formula with them.
+func simpsonTerms(y, x []float64, lo int, dst []float64) {
 	if x == nil {
-		for i := 0; i < stop; i += 2 {
-			s += y[i] + 4*y[i+1] + y[i+2]
+		for k := range dst {
+			i := 2 * (lo + k)
+			dst[k] = y[i] + float64(4*y[i+1]) + y[i+2]
 		}
-		return s * dx / 3
+		return
 	}
-	for i := 0; i < stop; i += 2 {
+	for k := range dst {
+		i := 2 * (lo + k)
 		h0 := x[i+1] - x[i]
 		h1 := x[i+2] - x[i+1]
 		hsum := h0 + h1
 		hprod := h0 * h1
 		h0divh1 := div0(h0, h1)
-		s += hsum / 6 * (y[i]*(2-div0(1, h0divh1)) + y[i+1]*(hsum*div0(hsum, hprod)) + y[i+2]*(2-h0divh1))
+		dst[k] = hsum / 6 * (float64(y[i]*(2-div0(1, h0divh1))) +
+			float64(y[i+1]*float64(hsum*div0(hsum, hprod))) + float64(y[i+2]*(2-h0divh1)))
 	}
-	return s
+}
+
+// simpsonCore is Simpson for validated samples; sum(p) returns the sum (as
+// numpy.add.reduce) of the terms of the first p panels.
+func simpsonCore(y, x []float64, dx float64, sum func(panels int) float64) float64 {
+	n := len(y)
+	if n == 2 {
+		return 0 + float64(0.5*spacing(x, dx, 0))*(y[1]+y[0])
+	}
+	stop := n - 2
+	if n%2 == 0 {
+		stop = n - 3
+	}
+	s := sum((stop + 1) / 2)
+	if x == nil {
+		s = float64(dx/3) * s // dx / 3.0 * sum(...)
+	}
+	if n%2 == 1 {
+		return s
+	}
+	alpha, beta, eta := simpsonEnd(x, dx, n)
+	// The correction is summed before it is added, as NumPy evaluates it.
+	corr := float64(alpha*y[n-1]) + float64(beta*y[n-2]) - float64(eta*y[n-3])
+	return s + corr + 0
+}
+
+// simpsonLane is Simpson for a validated lane, with its terms formed in
+// scratch (at least len(y)/2 long).
+func simpsonLane(y, x []float64, dx float64, scratch []float64) float64 {
+	return simpsonCore(y, x, dx, func(p int) float64 {
+		t := scratch[:p]
+		simpsonTerms(y, x, 0, t)
+		return 0.0 + pairwiseSlice(t)
+	})
+}
+
+// simpsonEnd returns the coefficients of Cartwright's correction for the
+// last interval of n (even) samples, with the products rounded before they
+// are summed, as NumPy rounds them.
+func simpsonEnd(x []float64, dx float64, n int) (alpha, beta, eta float64) {
+	h0, h1 := dx, dx
+	if x != nil {
+		h0 = x[n-2] - x[n-3]
+		h1 = x[n-1] - x[n-2]
+	}
+	alpha = div0(float64(2*h1*h1)+float64(3*h0*h1), 6*(h1+h0))
+	beta = div0(float64(h1*h1)+float64(3*h0*h1), 6*h0)
+	eta = div0(h1*h1*h1, 6*h0*(h0+h1))
+	return alpha, beta, eta
 }
 
 // Simpson integrates samples y with the composite Simpson rule at abscissae x
@@ -272,21 +370,7 @@ func Simpson(y, x []float64, dx float64) (float64, error) {
 	if err := checkXY(y, x, 2, "Simpson"); err != nil {
 		return 0, err
 	}
-	n := len(y)
-	if n%2 == 1 {
-		return basicSimpson(y, x, dx, n-2), nil
-	}
-	if n == 2 {
-		return 0.5 * spacing(x, dx, 0) * (y[0] + y[1]), nil
-	}
-	result := basicSimpson(y, x, dx, n-3)
-	h0, h1 := dx, dx
-	if x != nil {
-		h0 = x[n-2] - x[n-3]
-		h1 = x[n-1] - x[n-2]
-	}
-	alpha := div0(2*h1*h1+3*h0*h1, 6*(h1+h0))
-	beta := div0(h1*h1+3*h0*h1, 6*h0)
-	eta := div0(h1*h1*h1, 6*h0*(h0+h1))
-	return result + alpha*y[n-1] + beta*y[n-2] - eta*y[n-3], nil
+	return simpsonCore(y, x, dx, func(p int) float64 {
+		return npSum(p, func(lo int, dst []float64) { simpsonTerms(y, x, lo, dst) })
+	}), nil
 }
