@@ -1,6 +1,6 @@
 # Times the problems of bench_test.go with SciPy (the reference this library
 # is measured against). Run with:
-#   uv run --with scipy --with numpy python bench/scipy_bench.py [name...]
+#   uv run --with scipy==1.18.1 --with numpy==2.5.4 python bench/scipy_bench.py [name...]
 # Prints "name ns/op callbacks_ns" lines: the median over 7 repeats of the
 # mean time of one call, and an estimate of the part of it spent calling the
 # Python right-hand side or integrand (the number of calls SciPy makes,
@@ -11,7 +11,7 @@ import sys
 import timeit
 
 import numpy as np
-from scipy import integrate
+from scipy import integrate, special
 
 
 def runge(x):
@@ -69,6 +69,85 @@ CASES = {
 }
 
 
+# The rest of the public operations (bench_test.go poses the same problems).
+def expm(x):
+    return math.exp(-x)
+
+
+def inv1p(x):
+    return 1 / (1 + x)
+
+
+def lorentz(x):
+    return 1 / (1 + x * x)
+
+
+def sqrtabs(x):
+    return math.sqrt(abs(x - 0.3))
+
+
+def expxy(y, x):
+    return math.exp(-x * y)
+
+
+def gauss3(z, y, x):
+    return math.exp(-(x * x + y * y + z * z))
+
+
+def gauss3n(x, y, z):
+    return math.exp(-(x * x + y * y + z * z))
+
+
+def lotka_event(t, y):
+    return y[0] - 5
+
+
+TE = np.linspace(0, 15, 1001)
+TS_LOTKA = np.linspace(0, 15, 101)
+
+CASES.update({
+    "QuadCos": (lambda f: integrate.quad(f, 0, 10, weight="cos", wvar=20), expm, "expm(0.3)"),
+    "QuadFourier": (lambda f: integrate.quad(f, 0, math.inf, weight="sin", wvar=1), expm, "expm(0.3)"),
+    "QuadAlgLog": (lambda f: integrate.quad(f, 0, 1, weight="alg-loga", wvar=(-0.5, 0)), inv1p, "inv1p(0.3)"),
+    "QuadCauchy": (lambda f: integrate.quad(f, -1, 2, weight="cauchy", wvar=0.5), lorentz, "lorentz(0.3)"),
+    "QuadPoints": (lambda f: integrate.quad(f, 0, 1, points=[0.3]), sqrtabs, "sqrtabs(0.5)"),
+    "DblQuad": (lambda f: integrate.dblquad(f, 0, 1, 0, lambda x: x), expxy, "expxy(0.3, 0.5)"),
+    "TplQuad": (lambda f: integrate.tplquad(f, 0, 1, 0, 1, 0, 1), gauss3, "gauss3(0.3, 0.5, 0.7)"),
+    "NQuad": (lambda f: integrate.nquad(f, [[0, 1], [0, 1], [0, 1]]), gauss3n, "gauss3n(0.3, 0.5, 0.7)"),
+    "FixedQuad": (lambda f: integrate.fixed_quad(f, 0, 1, n=5), np.cos, "np.cos(np.ones(5))"),
+    "SolveIVPLotkaRK23": (lambda f: integrate.solve_ivp(f, (0, 15), [10, 5], method="RK23"), lotka, "lotka(0.0, Y2)"),
+    "SolveIVPLotkaDense": (lambda f: integrate.solve_ivp(f, (0, 15), [10, 5], t_eval=TE, dense_output=True),
+                           lotka, "lotka(0.0, Y2)"),
+    "SolveIVPLotkaEvents": (lambda f: integrate.solve_ivp(f, (0, 15), [10, 5], events=lotka_event),
+                            lotka, "lotka(0.0, Y2)"),
+    "OdeintLotka": (lambda f: integrate.odeint(f, [10, 5], TS_LOTKA, tfirst=True), lotka, "lotka(0.0, Y2)"),
+})
+
+
+def samples(n):
+    t = np.arange(n) / (n - 1)
+    x = 10 * t * t
+    return np.sin(x), x
+
+
+Y5, X5 = samples(100000)
+YR, _ = samples(2 ** 16 + 1)
+G = np.sin(np.arange(1000 * 100) * 0.001).reshape(1000, 100)
+
+# Operations on sample arrays: no Python callback.
+ARRAYS = {
+    "GaussLegendre50": lambda: special.roots_legendre(50),
+    "Trapezoid1e5": lambda: integrate.trapezoid(Y5, X5),
+    "Simpson1e5": lambda: integrate.simpson(Y5, x=X5),
+    "CumulativeTrapezoid1e5": lambda: integrate.cumulative_trapezoid(Y5, X5, initial=0),
+    "Romb": lambda: integrate.romb(YR, dx=0.001),
+    "TrapezoidNDAxis0": lambda: integrate.trapezoid(G, dx=0.1, axis=0),
+    "TrapezoidNDAxis1": lambda: integrate.trapezoid(G, dx=0.1, axis=1),
+    "SimpsonNDAxis1": lambda: integrate.simpson(G, dx=0.1, axis=1),
+    "CumulativeTrapezoidNDAxis0": lambda: integrate.cumulative_trapezoid(G, dx=0.1, axis=0, initial=0),
+}
+
+
 def count_calls(run, f):
     n = [0]
 
@@ -92,6 +171,13 @@ def main():
         m, _ = tc.autorange()
         per = sorted(x / m for x in tc.repeat(repeat=5, number=m))[2]
         print(f"{name} {runs[3] * 1e9:.0f} {per * calls * 1e9:.0f}")
+    for name, run in ARRAYS.items():
+        if only and name not in only:
+            continue
+        t = timeit.Timer(run)
+        n, _ = t.autorange()
+        runs = sorted(x / n for x in t.repeat(repeat=7, number=n))
+        print(f"{name} {runs[3] * 1e9:.0f} 0")
 
 
 if __name__ == "__main__":
