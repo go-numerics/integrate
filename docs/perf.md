@@ -70,9 +70,8 @@ it) and is not compared.
 
 ## Before and after this round of work
 
-The first table above was measured on the code of 2026-10-12 as well
-(3 rounds, load 14–18). Every row not listed here was within the noise of
-the run above.
+The same comparison on the code before this work (2026-10-12, 3 rounds,
+load 14–18). Rows not listed were unchanged within the noise.
 
 | problem | SciPy / Go before | after |
 |---|---:|---:|
