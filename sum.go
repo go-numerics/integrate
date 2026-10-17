@@ -22,20 +22,31 @@ func npSum(n int, fill func(lo int, dst []float64)) float64 {
 // pwBlock is NumPy's PW_BLOCKSIZE.
 const pwBlock = 128
 
-// pairwise is numpy's pairwise_sum_DOUBLE over terms lo..lo+n-1.
+// pairwise is numpy's pairwise_sum_DOUBLE over terms lo..lo+n-1, formed
+// block by block into buf.
 func pairwise(lo, n int, fill func(lo int, dst []float64), buf *[pwBlock]float64) float64 {
-	switch {
-	case n < 8:
+	if n <= pwBlock {
 		a := buf[:n]
 		fill(lo, a)
+		return pairwiseSlice(a)
+	}
+	n2 := n / 2
+	n2 -= n2 % 8
+	return pairwise(lo, n2, fill, buf) + pairwise(lo+n2, n-n2, fill, buf)
+}
+
+// pairwiseSlice is numpy's pairwise_sum_DOUBLE over the terms in a (without
+// the leading 0.0 of add.reduce).
+func pairwiseSlice(a []float64) float64 {
+	n := len(a)
+	switch {
+	case n < 8:
 		res := 0.0
 		for _, v := range a {
 			res += v
 		}
 		return res
 	case n <= pwBlock:
-		a := buf[:n]
-		fill(lo, a)
 		r0, r1, r2, r3, r4, r5, r6, r7 := a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]
 		i := 8
 		for ; i < n-n%8; i += 8 {
@@ -57,5 +68,5 @@ func pairwise(lo, n int, fill func(lo int, dst []float64), buf *[pwBlock]float64
 	}
 	n2 := n / 2
 	n2 -= n2 % 8
-	return pairwise(lo, n2, fill, buf) + pairwise(lo+n2, n-n2, fill, buf)
+	return pairwiseSlice(a[:n2]) + pairwiseSlice(a[n2:])
 }

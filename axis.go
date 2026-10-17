@@ -91,11 +91,7 @@ func TrapezoidND(y *ndarray.Array, x []float64, dx float64, axis int) (*ndarray.
 	}
 	var out []float64
 	if l.inner == 1 {
-		out, err = l.lanes(1, func(lane, o []float64) error {
-			v, err := Trapezoid(lane, x, dx)
-			o[0] = v
-			return err
-		})
+		out, err = trapezoidLanes(l, x, dx)
 	} else {
 		out, err = trapezoidRows(l, x, dx)
 	}
@@ -103,6 +99,23 @@ func TrapezoidND(y *ndarray.Array, x []float64, dx float64, axis int) (*ndarray.
 		return nil, err
 	}
 	return l.result(out, 0)
+}
+
+// trapezoidLanes integrates every contiguous lane, sharing one buffer for
+// their terms.
+func trapezoidLanes(l axisLayout, x []float64, dx float64) ([]float64, error) {
+	out := make([]float64, l.outer)
+	if l.outer == 0 {
+		return out, nil
+	}
+	if err := checkLen(l.n, x, 0, "Trapezoid"); err != nil {
+		return nil, err
+	}
+	scratch := make([]float64, l.n)
+	for o := range out {
+		out[o] = trapezoidLane(l.flat[o*l.n:o*l.n+l.n], x, dx, scratch)
+	}
+	return out, nil
 }
 
 func trapezoidRows(l axisLayout, x []float64, dx float64) ([]float64, error) {
@@ -135,11 +148,7 @@ func SimpsonND(y *ndarray.Array, x []float64, dx float64, axis int) (*ndarray.Ar
 	}
 	var out []float64
 	if l.inner == 1 {
-		out, err = l.lanes(1, func(lane, o []float64) error {
-			v, err := Simpson(lane, x, dx)
-			o[0] = v
-			return err
-		})
+		out, err = simpsonLanes(l, x, dx)
 	} else {
 		out, err = simpsonRows(l, x, dx)
 	}
@@ -147,6 +156,22 @@ func SimpsonND(y *ndarray.Array, x []float64, dx float64, axis int) (*ndarray.Ar
 		return nil, err
 	}
 	return l.result(out, 0)
+}
+
+// simpsonLanes is trapezoidLanes for Simpson's rule.
+func simpsonLanes(l axisLayout, x []float64, dx float64) ([]float64, error) {
+	out := make([]float64, l.outer)
+	if l.outer == 0 {
+		return out, nil
+	}
+	if err := checkLen(l.n, x, 2, "Simpson"); err != nil {
+		return nil, err
+	}
+	scratch := make([]float64, l.n)
+	for o := range out {
+		out[o] = simpsonLane(l.flat[o*l.n:o*l.n+l.n], x, dx, scratch)
+	}
+	return out, nil
 }
 
 func simpsonRows(l axisLayout, x []float64, dx float64) ([]float64, error) {

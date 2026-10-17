@@ -331,6 +331,31 @@ func TestAxisRulesEdges(t *testing.T) {
 	if _, err := SimpsonND(a, nil, 1, 2); err == nil {
 		t.Error("simpson: no error for an axis out of range")
 	}
+	// Contiguous lanes, empty or of one sample.
+	none, _ := ndarray.FromData([]float64{}, 0, 5)
+	if r, err := TrapezoidND(none, bad, 0, 1); err != nil || r.Size() != 0 {
+		t.Errorf("no lanes: %v %v", r, err)
+	}
+	if r, err := SimpsonND(none, bad, 0, 1); err != nil || r.Size() != 0 {
+		t.Errorf("no lanes: %v %v", r, err)
+	}
+	single, _ := ndarray.FromData([]float64{1, 2, 3}, 3, 1)
+	if r, err := TrapezoidND(single, nil, 1, 1); err != nil || r.At(2) != 0 {
+		t.Errorf("one-sample lanes: %v %v", r, err)
+	}
+	// Long lanes give the 1-D rules' values.
+	y, x := exactData(600)
+	long, _ := ndarray.FromData(y, 2, 300)
+	for k := range 2 {
+		lane, xl := y[300*k:300*k+300], x[:300]
+		w1, _ := Trapezoid(lane, xl, 0)
+		w2, _ := Simpson(lane, xl, 0)
+		g1, _ := TrapezoidND(long, xl, 0, 1)
+		g2, _ := SimpsonND(long, xl, 0, 1)
+		if g1.At(k) != w1 || g2.At(k) != w2 {
+			t.Errorf("lane %d: %v %v, 1-D %v %v", k, g1.At(k), g2.At(k), w1, w2)
+		}
+	}
 	// Fewer than two samples integrate to 0.
 	if v, err := Trapezoid([]float64{3}, nil, 1); err != nil || v != 0 {
 		t.Errorf("one sample: %v %v", v, err)
