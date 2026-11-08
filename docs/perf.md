@@ -78,9 +78,11 @@ The counts of the table are per call, recorded on linux/amd64 (the `perf` job's
 lane). Three rows depend on the architecture: `SolveIVP` Radau, Radau with a
 Jacobian and BDF store one state per step, and a stiff problem takes a few
 steps more or fewer when arm64 fuses a multiply-add (Radau 353 on amd64, 350 on
-arm64; Radau with a Jacobian 349 and 345; BDF 596 and 595). Their amd64 counts
-were taken from the CI run; a local run on arm64 reports these three rows as
-differing by that much. Where this work changed them (see the pull
+arm64; Radau with a Jacobian 349 and 345; BDF 596 and 595). Each architecture
+has its own exact record: `perf.json` / `perf-table.md` (amd64, from CI) and
+`perf-arm64.json` / `perf-table-arm64.md` (arm64, measured locally), selected
+by `GOARCH` in `bench/perf_test.go`; the `perf` job runs on both. Timings, when
+recorded, go in the file of the machine that took them. Where this work changed them (see the pull
 request): a plain `Quad` allocates nothing (its six lists now come from a pool,
 and a triple quadrature went from 2 780 allocations to 2), a Radau step no
 longer allocates its interpolant (1 395 allocations to 350 on the Van der Pol

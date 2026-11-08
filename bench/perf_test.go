@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/go-ndarray/ndarray"
@@ -485,6 +486,22 @@ func running() bool {
 	return f != nil && f.Value.String() == "true"
 }
 
+// archConfig: the stiff rows store one state per step and take a different number
+// of steps where the compiler fuses multiply-adds (arm64), so their allocation
+// counts are recorded per GOARCH, as exact values: docs/perf.json and
+// docs/perf-table.md for amd64 (and any other architecture without its own
+// files), docs/perf-arm64.json and docs/perf-table-arm64.md for arm64.
+// refbench v0.1.2 holds one report per file, hence one file pair per GOARCH
+// (go-scikit/refbench asks for a per-GOARCH report).
+func archConfig(cs []refbench.Case) refbench.CIConfig {
+	cfg := refbench.CIConfig{Root: "..", Cases: cs}
+	if runtime.GOARCH == "arm64" {
+		cfg.JSON = filepath.Join("..", "docs", "perf-arm64.json")
+		cfg.Table = filepath.Join("..", "docs", "perf-table-arm64.md")
+	}
+	return cfg
+}
+
 func TestPerf(t *testing.T) {
 	var w *refbench.Worker
 	if running() {
@@ -498,7 +515,7 @@ func TestPerf(t *testing.T) {
 		}
 		opt.RefVersions = v
 	}
-	rbtest.Perf(t, refbench.CIConfig{Root: "..", Cases: cases(w)}, opt)
+	rbtest.Perf(t, archConfig(cases(w)), opt)
 }
 
 func digest(arrs [][]float64) string {
