@@ -1,136 +1,90 @@
-# Performance against SciPy
+# Performance against SciPy 1.18.1
 
-## Method
+The comparison runs under [refbench](https://github.com/go-scikit/refbench)
+v0.1.2 (`rbtest.Perf`): one core (GOMAXPROCS=1; BLAS threads pinned to 1),
+interleaved rounds (Go, SciPy, Go, SciPy, ...), the 1-minute load read before
+every round and the measurement refused at a load of 8 or more. Target: no
+slower than SciPy (ratio <= 1); a row above 1 is an open defect.
 
-`bench/compare.sh` runs the Go benchmarks of `bench_test.go` and the same
-problems through SciPy (`bench/scipy_bench.py`, under `uv run --with
-scipy==1.18.1 --with numpy==2.5.4`) alternately, five rounds, and reports
-the median of each side. The Go side runs on one thread (`-test.cpu 1`), as
-SciPy does. Each SciPy figure is the median of 7 repeats of a timed loop
-lasting about 0.2 s; each Go figure is `go test -bench` with `-benchtime 1s`.
-`bench/compare.sh name...` restricts a run to some problems.
+- The cases are in [`bench/perf_test.go`](../bench/perf_test.go): one or more
+  per public function, against the `scipy.integrate` function it ports (SciPy
+  1.18.1 and NumPy 2.5.4, pinned with their hashes in `bench/refs.txt`).
+- Functions with no SciPy call to compare are named in
+  [perf-exempt.md](perf-exempt.md) with the reason.
+- The table, with the allocation count of every case, is
+  [perf-table.md](perf-table.md), generated from [perf.json](perf.json). Its
+  timings are **deferred**: the host was at a 1-minute load of 10 to 24 when this
+  was written, so only the allocation counts are recorded (exact under any load).
+- The previous table (own harness, host load 14 to 18) is kept as
+  [perf-legacy.md](perf-legacy.md).
 
-SciPy's time includes calling the Python integrand or right-hand side, which
-is the price of writing it in Python, not of SciPy's algorithms. The script
-also estimates that part: it counts the calls SciPy makes on one run and
-multiplies by the cost of one call of the same Python function measured alone.
-The last column divides SciPy's time without that part by Go's: what remains
-is SciPy's own machinery (QUADPACK in C for `quad`, NumPy-level Python for
-`solve_ivp`, ODEPACK in Fortran for `odeint` and `method="LSODA"`). The
-sample rules (`trapezoid`, `simpson`, `romb`, …) take no callback.
+```
+cd bench
+go test -run TestPerf .                          CI mode: allocations, table, inventory
+go test -run TestPerf -cpu 1 -perf.run .         measure (refuses at a 1-minute load of 8 or more)
+go test -run TestPerf -perf.record .             allocation counts only (a deferred report)
+go test -run TestDataParity -perf.parity .       same bytes on both sides
+go test -run TestWorkParity -perf.parity .       same number of integrand calls
+go test -run TestRefSmoke -perf.smoke .          every SciPy expression runs once
+```
 
-Host: Apple M4 Max (16 cores), macOS, Go 1.27.2, Python 3.12, SciPy 1.18.1,
-NumPy 2.5.4. The machine is shared with other jobs: `uptime` gave load
-averages of 13.7 at the start and 15.3 at the end of the run below (16
-cores), so absolute numbers carry some noise (±20 % between runs).
+CI runs the first line: the allocation count of every case must equal
+`perf.json` (an increase is a regression, a decrease must be recorded), the table
+must be what `perf.json` generates, and every public function must have a case or
+an exemption.
 
-## Results (2026-10-17, 5 interleaved rounds)
+## What makes a row comparable
 
-| problem | Go median | SciPy median | SciPy / Go | of which Python callbacks | SciPy without callbacks / Go |
-|---|---:|---:|---:|---:|---:|
-| QuadSmooth | 1.4 µs | 11.5 µs | 8.5× | 7.0 µs | 3.3× |
-| QuadSingular | 3.6 µs | 22.5 µs | 6.3× | 14.2 µs | 2.3× |
-| QuadInfinite | 2.9 µs | 15.4 µs | 5.4× | 8.5 µs | 2.4× |
-| SolveIVPLotkaRK45 | 15.2 µs | 1.24 ms | 82× | 150.4 µs | 72× |
-| SolveIVPLotkaDOP853Tight | 82.1 µs | 7.44 ms | 91× | 1.05 ms | 78× |
-| SolveIVPVdP1000Radau | 155.4 µs | 28.36 ms | 182× | 780.7 µs | 177× |
-| SolveIVPVdP1000RadauJac | 176.2 µs | 26.28 ms | 149× | 724.7 µs | 145× |
-| SolveIVPVdP1000BDF | 194.5 µs | 32.54 ms | 167× | 600.4 µs | 164× |
-| SolveIVPVdP1000BDFJac | 194.7 µs | 29.87 ms | 153× | 443.8 µs | 151× |
-| SolveIVPVdP1000LSODA | 150.6 µs | 2.22 ms | 15× | 466.7 µs | 12× |
-| OdeintRobertson | 194.5 µs | 1.54 ms | 7.9× | 989.7 µs | 2.8× |
-| QuadCos | 1.6 µs | 2.6 µs | 1.6× | 732 ns | 1.1× |
-| QuadFourier | 7.2 µs | 13.2 µs | 1.8× | 5.9 µs | 1× |
-| QuadAlgLog | 1.4 µs | 3.8 µs | 2.7× | 1.3 µs | 1.7× |
-| QuadCauchy | 1.8 µs | 12.2 µs | 6.7× | 7.0 µs | 2.8× |
-| QuadPoints | 3.3 µs | 32.5 µs | 9.9× | 17.7 µs | 4.5× |
-| DblQuad | 19.6 µs | 61.3 µs | 3.1× | 14.7 µs | 2.4× |
-| TplQuad | 392.6 µs | 1.44 ms | 3.7× | 494.6 µs | 2.4× |
-| NQuad | 368.4 µs | 1.41 ms | 3.8× | 481.0 µs | 2.5× |
-| FixedQuad | 27 ns | 6.7 µs | 251× | 574 ns | 230× |
-| GaussLegendre50 | 8 ns | 63.9 µs | 7802× | 0 ns | 7802× |
-| Trapezoid1e5 | 53.3 µs | 72.3 µs | 1.4× | 0 ns | 1.4× |
-| Simpson1e5 | 97.8 µs | 507.3 µs | 5.2× | 0 ns | 5.2× |
-| CumulativeTrapezoid1e5 | 245.5 µs | 315.0 µs | 1.3× | 0 ns | 1.3× |
-| Romb | 41.6 µs | 64.4 µs | 1.5× | 0 ns | 1.5× |
-| TrapezoidNDAxis0 | 43.2 µs | 60.5 µs | 1.4× | 0 ns | 1.4× |
-| TrapezoidNDAxis1 | 43.9 µs | 100.2 µs | 2.3× | 0 ns | 2.3× |
-| SimpsonNDAxis1 | 47.3 µs | 130.7 µs | 2.8× | 0 ns | 2.8× |
-| CumulativeTrapezoidNDAxis0 | 165.1 µs | 384.5 µs | 2.3× | 0 ns | 2.3× |
-| SolveIVPLotkaRK23 | 33.6 µs | 2.10 ms | 63× | 186.2 µs | 57× |
-| SolveIVPLotkaDense | 49.3 µs | 1.73 ms | 35× | 149.8 µs | 32× |
-| SolveIVPLotkaEvents | 17.7 µs | 2.03 ms | 115× | 152.7 µs | 106× |
-| OdeintLotka | 65.6 µs | 671.3 µs | 10× | 389.9 µs | 4.3× |
+- **Same data.** The sample rules take 100 000 samples (Romb 65 537, the ND
+  rules a 1000 x 100 grid) built by one formula on both sides with no
+  transcendental function and every product rounded before it is added.
+  `TestDataParity` hashes (SHA-256) the arrays on both sides and passes.
+- **Same work.** An adaptive integrator does the same work when it calls the
+  integrand as often. `TestWorkParity` wraps the Python callback in a counter,
+  counts the Go integrand the same way, and compares. Equal for every `Quad`
+  row (including the weighted routines and the singular, infinite and
+  break-point cases), `DblQuad`, `TplQuad`, `NQuad`, and `SolveIVP` with RK45,
+  RK23, DOP853 (also with `t_eval`, dense output and an event) and BDF with a
+  Jacobian. Within 2 % for Radau (285 steps against 283 without a Jacobian,
+  282 against 285 with one: the stiff Newton iteration is sensitive to the
+  rounding of the LU solves) and within 1 % for BDF without a Jacobian (one
+  call). By design different, so pinned in the test (Go, SciPy): `SolveIVP`
+  LSODA 2594 against 1803 calls, `Odeint` Robertson 2222 against 1683 and
+  Lotka 1880 against 1243: this package's stiff/non-stiff switching is not
+  ODEPACK's (docs/design.md). Those three ratios carry that difference.
+- **Callbacks.** SciPy calls its integrand from Python. The rows say what they
+  do about it:
+  - `Quad` rows named `(libm)` integrate a function of the C library (`log`,
+    `sin`, `exp`) passed as a `scipy.LowLevelCallable` built with `ctypes`: no
+    Python runs inside QUADPACK. The twin rows named `(Python)` integrate the
+    same function written in Python (`log`, `sin 0..100`); the difference is
+    the cost of the callback. The other `Quad` rows are Python callbacks.
+  - `FixedQuad` passes `numpy.cos`, the vectorised callback `fixed_quad`
+    offers (one call on the array of nodes); the Go side calls `math.Cos` at
+    each node.
+  - `DblQuad`, `TplQuad`, `NQuad`, `SolveIVP` and `Odeint` have no compiled or
+    vectorised callback in SciPy (a `ctypes` function must have the signature
+    `double(double)` or `double(int, double*)`; `solve_ivp`'s `vectorized`
+    flag only concerns finite-difference Jacobians), so they call a Python
+    function; the equal counts above show both sides call it as often.
+- `GaussLegendre` compares Go's cached rule (a `sync.Map` lookup) with SciPy's
+  `_cached_roots_legendre` (a cached lookup), the function
+  `fixed_quad` itself uses; the cold computation (SciPy's `roots_legendre`) is
+  not reachable from the public API once a rule is cached.
 
-Every operation is faster than SciPy. `GaussLegendre` returns a cached
-rule (as `fixed_quad`'s `_cached_roots_legendre` does), while
-`roots_legendre` recomputes it, so that row compares a lookup with a
-computation. `romberg` has no SciPy 1.18 counterpart (SciPy 1.15 removed
-it) and is not compared.
+## Allocation counts
 
-## Before and after this round of work
-
-The same comparison on the code before this work (2026-10-12, 3 rounds,
-load 14–18). Rows not listed were unchanged within the noise.
-
-| problem | SciPy / Go before | after |
-|---|---:|---:|
-| Trapezoid1e5 | **0.67×** | 1.4× |
-| TrapezoidNDAxis0 | **0.10×** | 1.4× |
-| TrapezoidNDAxis1 | **0.23×** | 2.3× |
-| SimpsonNDAxis1 | **0.23×** | 2.8× |
-| CumulativeTrapezoidNDAxis0 | **0.17×** | 2.3× |
-| Romb | 1.3× | 1.5× |
-| CumulativeTrapezoid1e5 | 1.6× | 1.3× (noise: same code path) |
-
-What changed:
-
-* **The sample rules sum as NumPy sums.** `trapezoid`, `simpson` and
-  `romb` end in `numpy.add.reduce`, which on a contiguous array is a
-  pairwise sum: blocks of 128 terms with eight running accumulators,
-  combined pairwise. Our rules used one running sum, which is
-  latency-bound and rounds differently. They now form every term as SciPy
-  forms it (products rounded before they are added, so Go never fuses them
-  into an FMA on arm64) and sum with the same pairwise order (`sum.go`).
-  `cumulative_trapezoid` is `cumsum`, a running sum, and stays one.
-* **The ND rules follow both of NumPy's orders.** NumPy reduces the last
-  (contiguous) axis pairwise, but any other axis row after row, each output
-  being a running sum from 0.0. The ND rules do the same, and the row order
-  lets every lane advance in the same pass. They read a contiguous float64
-  array in place; they used to fetch every element through `At`, which
-  dominated their time.
-* **Results now equal SciPy's to the last bit.** `exact_test.go` pins 96
-  results of the 1-D rules and 54 results of the ND rules (every axis of
-  three 3-D arrays) to what SciPy 1.18.1 returns on inputs both sides form
-  exactly (`bench/exact.py` generates them). The previous code differed
-  from SciPy in 35 and 11 of them, by up to 9·10⁻¹⁴ relative, and differed
-  between arm64 and amd64; both architectures now return SciPy's bits.
-
-## Reading the numbers
-
-* **quad**: SciPy's QUADPACK is compiled C, and 55–62 % of its time is the
-  Python integrand. The same subdivision (same evaluation count, see
-  verification.md) costs 2–3× less here without the callbacks, 5–10× with
-  them. The weighted routines (QAWO, QAWF) spend proportionally more in
-  Chebyshev moments and less in callbacks, so the gap there is smaller
-  (1.6–1.8×; about 1× once SciPy is credited with free callbacks).
-* **solve_ivp**: SciPy's RK45, DOP853, Radau and BDF are written in Python on
-  NumPy; per step they pay NumPy call overhead on 2-element arrays, which the
-  callbacks do not explain (they are 2–14 % of the time). The step sequences
-  are the same as here, so the 60–180× is per-step overhead, not a different
-  amount of work.
-* **LSODA and odeint**: SciPy runs ODEPACK's Fortran; most of `odeint`'s time
-  on Robertson is the Python right-hand side. ODEPACK's own work is about 3×
-  ours on that problem. The comparison is between two different algorithms
-  (see design.md): on Van der Pol μ = 1000 this package's switching method
-  uses 2 337 evaluations to ODEPACK's 1 803, on Robertson 2 175 to 1 683, and
-  is still faster in wall time because each evaluation is a Go call.
-* **Sample rules**: NumPy's loops are compiled and vectorised; ours are
-  scalar Go but make one pass where NumPy makes several (one per
-  temporary array), which is why they are 1.3–5× faster.
-* Allocation: a `Quad` call allocates its subinterval workspace (6 allocations
-  for QAGS); an ODE step allocates only what it stores in the `Solution`
-  (the state at each output time) plus, for Radau, the interpolant reused as
-  the next step's predictor.
-
-To reproduce: `ROUNDS=5 ./bench/compare.sh` (needs `uv` on the PATH).
+The counts of the table are per call, recorded on linux/amd64 (the `perf` job's
+lane). Three rows depend on the architecture: `SolveIVP` Radau, Radau with a
+Jacobian and BDF store one state per step, and a stiff problem takes a few
+steps more or fewer when arm64 fuses a multiply-add (Radau 353 on amd64, 350 on
+arm64; Radau with a Jacobian 349 and 345; BDF 596 and 595). Their amd64 counts
+were taken from the CI run; a local run on arm64 reports these three rows as
+differing by that much. Where this work changed them (see the pull
+request): a plain `Quad` allocates nothing (its six lists now come from a pool,
+and a triple quadrature went from 2 780 allocations to 2), a Radau step no
+longer allocates its interpolant (1 395 allocations to 350 on the Van der Pol
+problem), and a finite-difference Jacobian no longer allocates its work vectors
+(`BDF` 798 to 595, `LSODA` 781 to 608). The ODE rows still allocate what they
+store (the state at every step or output time). 32-bit lanes are not part of the
+`perf` job; a count that differed there would be recorded per `GOARCH`.

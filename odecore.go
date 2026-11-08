@@ -55,6 +55,7 @@ type odeCore struct {
 	firstStep float64
 	jac       JacFunc
 	jacFactor []float64
+	jacBuf    []float64 // numJac's work vectors and difference matrix, reused
 
 	nfev, njev, nlu, nfevJac, nsteps int
 	finished                         bool
@@ -243,8 +244,21 @@ func (c *odeCore) numJac(t float64, y, f, J []float64) {
 		}
 	}
 	factor := c.jacFactor
-	yScale := make([]float64, n)
-	h := make([]float64, n)
+	// The six work vectors and the n×n difference matrix live in one buffer kept
+	// on the core, zeroed on every call as make zeroed them.
+	if len(c.jacBuf) != 6*n+n*n {
+		c.jacBuf = make([]float64, 6*n+n*n)
+	} else {
+		clear(c.jacBuf)
+	}
+	buf := c.jacBuf
+	vec := func() []float64 {
+		v := buf[:n:n]
+		buf = buf[n:]
+		return v
+	}
+	yScale := vec()
+	h := vec()
 	for i := 0; i < n; i++ {
 		sign := 1.0
 		if f[i] < 0 {
@@ -257,11 +271,11 @@ func (c *odeCore) numJac(t float64, y, f, J []float64) {
 			h[i] = (y[i] + factor[i]*yScale[i]) - y[i]
 		}
 	}
-	ytmp := make([]float64, n)
-	col := make([]float64, n)
-	diff := make([]float64, n*n) // column-major: diff[j*n+i]
-	maxDiff := make([]float64, n)
-	scale := make([]float64, n)
+	ytmp := vec()
+	col := vec()
+	maxDiff := vec()
+	scale := vec()
+	diff := buf[:n*n] // column-major: diff[j*n+i]
 	column := func(j int, hj float64) (md, sc float64) {
 		copy(ytmp, y)
 		ytmp[j] += hj

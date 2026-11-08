@@ -217,6 +217,7 @@ func qawoe(f func(float64) float64, a, b, omega float64, integr int, epsabs, eps
 		return qout{ier: 6}
 	}
 	w := newWorkspace(limit)
+	defer w.release()
 	nnlog := w.level
 	domega := math.Abs(omega)
 	nrmom := 0
@@ -597,6 +598,7 @@ func qawce(f func(float64) float64, a, b, c, epsabs, epsrel float64, limit int) 
 		return qout{ier: 6}
 	}
 	w := newWorkspace(limit)
+	defer w.release()
 	result, abserr, neval, _ := qc25c(f, a, b, c)
 	last := 1
 	ier := 0
@@ -826,6 +828,7 @@ func qawse(f func(float64) float64, a, b, alfa, beta float64, integr int, epsabs
 	}
 	mo := qmomo(alfa, beta, integr)
 	w := newWorkspace(limit)
+	defer w.release()
 	centre := 0.5 * (b + a)
 	area1, error1, resas1, nev := qc25s(f, a, b, a, centre, alfa, beta, mo, integr)
 	neval := nev

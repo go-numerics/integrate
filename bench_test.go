@@ -12,8 +12,8 @@ import (
 	"github.com/go-ndarray/ndarray"
 )
 
-// The benchmark set of docs/perf.md; bench/scipy_bench.py times the same
-// problems with SciPy, and bench/compare.sh interleaves the two.
+// Go-side benchmarks for profiling (go test -bench). The comparison with SciPy
+// is the refbench module in bench/ (docs/perf.md).
 
 func BenchmarkQuadSmooth(b *testing.B) {
 	f := func(x float64) float64 { return 1 / (1 + 25*x*x) }
@@ -88,8 +88,8 @@ func BenchmarkOdeintRobertson(b *testing.B) {
 	}
 }
 
-// The rest of the public operations, each on a problem that
-// bench/scipy_bench.py poses to SciPy in the same form.
+// The rest of the public operations, each on a problem that bench/perf_test.go
+// poses to SciPy in the same form.
 
 func benchQuad(b *testing.B, f func(float64) float64, a, c float64, o *QuadOptions) {
 	for b.Loop() {

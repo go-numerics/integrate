@@ -350,18 +350,33 @@ func (s *radauSolver) stepImpl() (bool, string) {
 	return true, ""
 }
 
+// newDense refreshes, in place, the interpolant of the step just taken: the next
+// step reads it as its predictor, and nothing else holds it (denseImpl hands
+// out copies), so a step allocates nothing for it.
 func (s *radauSolver) newDense() *radauDense {
 	n := s.n
-	Q := make([]float64, n*3)
+	d := s.sol
+	if d == nil {
+		d = &radauDense{yOld: make([]float64, n), Q: make([]float64, n*3)}
+	}
 	for i := 0; i < n; i++ {
 		for j := 0; j < 3; j++ {
-			Q[i*3+j] = s.Z[0][i]*radauP[0][j] + s.Z[1][i]*radauP[1][j] + s.Z[2][i]*radauP[2][j]
+			d.Q[i*3+j] = s.Z[0][i]*radauP[0][j] + s.Z[1][i]*radauP[1][j] + s.Z[2][i]*radauP[2][j]
 		}
 	}
-	return &radauDense{tOld: s.tOld, h: s.t - s.tOld, yOld: append([]float64(nil), s.yOld...), Q: Q}
+	d.tOld, d.h = s.tOld, s.t-s.tOld
+	copy(d.yOld, s.yOld)
+	return d
 }
 
-func (s *radauSolver) denseImpl() denseOutput { return s.sol }
+// denseImpl returns the interpolant of the last step as a value of its own: a
+// continuous solution keeps one per step.
+func (s *radauSolver) denseImpl() denseOutput {
+	d := *s.sol
+	d.yOld = append([]float64(nil), d.yOld...)
+	d.Q = append([]float64(nil), d.Q...)
+	return &d
+}
 
 // radauDense is y_old + Σ_j Q_j x^(j+1), x = (t - t_old)/h.
 type radauDense struct {
