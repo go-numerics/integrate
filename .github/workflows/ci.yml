@@ -171,8 +171,12 @@ jobs:
   # in docs/perf-exempt.md. Timing runs by hand at a 1-minute load below 8:
   # cd bench && go test -run TestPerf -cpu 1 -perf.run .
   perf:
-    name: perf (refbench CI mode)
-    runs-on: ubuntu-latest
+    name: perf (refbench CI mode, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
