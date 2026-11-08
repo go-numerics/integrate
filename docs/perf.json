@@ -595,7 +595,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau')",
       "parity": "tolerance",
-      "allocs": 350,
+      "allocs": 353,
       "go": {
         "median": 0,
         "q1": 0,
@@ -613,7 +613,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau', jac)",
       "parity": "tolerance",
-      "allocs": 345,
+      "allocs": 349,
       "go": {
         "median": 0,
         "q1": 0,
@@ -631,7 +631,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF')",
       "parity": "tolerance",
-      "allocs": 595,
+      "allocs": 596,
       "go": {
         "median": 0,
         "q1": 0,
