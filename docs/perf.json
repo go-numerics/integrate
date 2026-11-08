@@ -1,0 +1,774 @@
+{
+  "schema": 1,
+  "status": "deferred",
+  "date": "2026-11-08T14:35:19+01:00",
+  "commit": "",
+  "repo": "go-numerics/integrate",
+  "go_version": "go1.27.3",
+  "machine": "darwin/arm64, 16 CPUs",
+  "max_load": 8,
+  "load": {
+    "min": 0,
+    "median": 0,
+    "max": 0
+  },
+  "valid": true,
+  "rows": [
+    {
+      "name": "Quad smooth (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(1/(1+25x^2), -1, 1)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad singular (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(log(x)/sqrt(x), 0, 1)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad infinite (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(exp(-x^2), -inf, inf)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad cos weight (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(exp(-x), 0, 10, weight='cos', wvar=20)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad sin weight, infinite (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(exp(-x), 0, inf, weight='sin', wvar=1)",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad alg-loga weight (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(1/(1+x), 0, 1, weight='alg-loga', wvar=(-0.5, 0))",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad cauchy weight (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(1/(1+x^2), -1, 2, weight='cauchy', wvar=0.5)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad points (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(sqrt|x-0.3|, 0, 1, points=[0.3])",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad log (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(log, 0, 1)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad sin 0..100 (Python)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(sin, 0, 100)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad log (libm)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(libm log, 0, 1)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad sin 0..100 (libm)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(libm sin, 0, 100)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Quad cos weight (libm)",
+      "func": "Quad",
+      "reference": "scipy 1.18.1 integrate.quad(libm exp, 0, 5, weight='cos', wvar=20)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "DblQuad",
+      "func": "DblQuad",
+      "reference": "scipy 1.18.1 integrate.dblquad(exp(-xy), 0, 1, 0, x)",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "TplQuad",
+      "func": "TplQuad",
+      "reference": "scipy 1.18.1 integrate.tplquad(exp(-(x^2+y^2+z^2)), unit cube)",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "NQuad",
+      "func": "NQuad",
+      "reference": "scipy 1.18.1 integrate.nquad(exp(-|x|^2), unit cube)",
+      "parity": "tolerance",
+      "allocs": 2,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "FixedQuad (vectorised numpy.cos)",
+      "func": "FixedQuad",
+      "reference": "scipy 1.18.1 integrate.fixed_quad(np.cos, 0, 1, n=5)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "GaussLegendre 50 (cached)",
+      "func": "GaussLegendre",
+      "reference": "scipy 1.18.1 integrate._cached_roots_legendre(50)",
+      "parity": "exact",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Trapezoid 1e5",
+      "func": "Trapezoid",
+      "reference": "scipy 1.18.1 integrate.trapezoid(y, x)",
+      "parity": "exact",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Simpson 1e5",
+      "func": "Simpson",
+      "reference": "scipy 1.18.1 integrate.simpson(y, x=x)",
+      "parity": "exact",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "CumulativeTrapezoid 1e5",
+      "func": "CumulativeTrapezoid",
+      "reference": "scipy 1.18.1 integrate.cumulative_trapezoid(y, x, initial=0)",
+      "parity": "exact",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Romb 65537",
+      "func": "Romb",
+      "reference": "scipy 1.18.1 integrate.romb(y, dx=0.001)",
+      "parity": "exact",
+      "allocs": 34,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "TrapezoidND axis 0",
+      "func": "TrapezoidND",
+      "reference": "scipy 1.18.1 integrate.trapezoid(g, dx=0.1, axis=0)",
+      "parity": "exact",
+      "allocs": 8,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "TrapezoidND axis 1",
+      "func": "TrapezoidND",
+      "reference": "scipy 1.18.1 integrate.trapezoid(g, dx=0.1, axis=1)",
+      "parity": "exact",
+      "allocs": 9,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SimpsonND axis 1",
+      "func": "SimpsonND",
+      "reference": "scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=1)",
+      "parity": "exact",
+      "allocs": 9,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SimpsonND axis 0",
+      "func": "SimpsonND",
+      "reference": "scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=0)",
+      "parity": "exact",
+      "allocs": 8,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "CumulativeTrapezoidND axis 0",
+      "func": "CumulativeTrapezoidND",
+      "reference": "scipy 1.18.1 integrate.cumulative_trapezoid(g, dx=0.1, axis=0, initial=0)",
+      "parity": "exact",
+      "allocs": 9,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP Lotka RK45",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5])",
+      "parity": "tolerance",
+      "allocs": 95,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP Lotka RK23",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23')",
+      "parity": "tolerance",
+      "allocs": 210,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP Lotka DOP853 tight",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12)",
+      "parity": "tolerance",
+      "allocs": 277,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP Lotka dense t_eval",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True)",
+      "parity": "tolerance",
+      "allocs": 1228,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP Lotka event",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5)",
+      "parity": "tolerance",
+      "allocs": 161,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP VdP1000 Radau",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau')",
+      "parity": "tolerance",
+      "allocs": 350,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP VdP1000 Radau jac",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau', jac)",
+      "parity": "tolerance",
+      "allocs": 345,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP VdP1000 BDF",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF')",
+      "parity": "tolerance",
+      "allocs": 595,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP VdP1000 BDF jac",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF', jac)",
+      "parity": "tolerance",
+      "allocs": 586,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP VdP1000 LSODA",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA')",
+      "parity": "tolerance",
+      "allocs": 608,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Odeint Robertson",
+      "func": "Odeint",
+      "reference": "scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12)",
+      "parity": "tolerance",
+      "allocs": 146,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "Odeint Lotka 101 times",
+      "func": "Odeint",
+      "reference": "scipy 1.18.1 integrate.odeint(lotka, 101 times)",
+      "parity": "tolerance",
+      "allocs": 829,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "ODESolution.Eval scalar",
+      "func": "ODESolution.Eval",
+      "reference": "scipy 1.18.1 integrate.sol.sol(7.5)",
+      "parity": "tolerance",
+      "allocs": 1,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "ODESolution.EvalInto scalar",
+      "func": "ODESolution.EvalInto",
+      "reference": "scipy 1.18.1 integrate.sol.sol(7.5)",
+      "parity": "tolerance",
+      "allocs": 0,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "ODESolution.EvalArray 1001 points",
+      "func": "ODESolution.EvalArray",
+      "reference": "scipy 1.18.1 integrate.sol.sol(t_array)",
+      "parity": "tolerance",
+      "allocs": 7,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    }
+  ]
+}

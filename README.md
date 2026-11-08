@@ -30,9 +30,14 @@ go get github.com/go-numerics/integrate
   [docs/verification.md](docs/verification.md): roundoff-limited paths that
   depend on the last bit, and three integrals where SciPy's C translation of
   QUADPACK departs from the Fortran and this port agrees with the Fortran.
-* **Faster.** 6–8× SciPy on `quad` (3× without counting Python callbacks),
-  90–190× on `solve_ivp` (RK45, DOP853, Radau, BDF; same step sequences),
-  8–16× on `odeint`/LSODA ([docs/perf.md](docs/perf.md)).
+* **Measured against SciPy** under [refbench](https://github.com/go-scikit/refbench)
+  ([docs/perf.md](docs/perf.md)): one case per public function, the same data
+  and the same number of integrand calls on both sides, `quad` also with
+  compiled (libm) callbacks so that no Python runs in SciPy's integrator. The
+  table holds allocation counts; its timings are deferred until the host is
+  idle. The October 2026 timings (6–8× on `quad`, 90–190× on `solve_ivp`,
+  taken at a host load above 8) are kept in
+  [docs/perf-legacy.md](docs/perf-legacy.md) and carry no verdict.
 * **Verified.** Fixtures from SciPy and mpmath, the netlib Fortran as a second
   oracle, a negative control on the coefficients, 100 % statement coverage
   with `-race`, CI lanes on amd64, arm64, riscv64, loong64, ppc64le, s390x,

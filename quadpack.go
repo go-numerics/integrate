@@ -13,7 +13,10 @@ package integrate
 // subintervals. Arrays are indexed from 1, as in the Fortran, which keeps the
 // translation line-for-line checkable; element 0 is unused.
 
-import "math"
+import (
+	"math"
+	"sync"
+)
 
 const (
 	epmach = 2.220446049250313e-16   // d1mach(4): relative spacing at 1
@@ -40,14 +43,33 @@ type workspace struct {
 	iord, level                []int
 }
 
+// wsPool keeps workspaces for reuse: a nested quadrature (DblQuad, TplQuad,
+// NQuad) runs hundreds of inner Quad calls, each of which used to allocate its
+// six lists. A reused workspace is cleared, so a driver sees what make gives it.
+var wsPool sync.Pool
+
 func newWorkspace(limit int) *workspace {
 	n := limit + 1
+	if w, ok := wsPool.Get().(*workspace); ok && cap(w.alist) >= n {
+		w.alist, w.blist, w.rlist, w.elist = w.alist[:n], w.blist[:n], w.rlist[:n], w.elist[:n]
+		w.iord, w.level = w.iord[:n], w.level[:n]
+		clear(w.alist)
+		clear(w.blist)
+		clear(w.rlist)
+		clear(w.elist)
+		clear(w.iord)
+		clear(w.level)
+		return w
+	}
 	return &workspace{
 		alist: make([]float64, n), blist: make([]float64, n),
 		rlist: make([]float64, n), elist: make([]float64, n),
 		iord: make([]int, n), level: make([]int, n),
 	}
 }
+
+// release returns the workspace to the pool; the driver must not use it after.
+func (w *workspace) release() { wsPool.Put(w) }
 
 // split stores the two halves of interval maxerr in slots maxerr and last,
 // keeping the half with the larger error in maxerr (QUADPACK's labels 20/30).
@@ -316,6 +338,7 @@ func qagsCore(rule ruleFunc, a, b, epsabs, epsrel float64, limit int, small0 flo
 		return qout{ier: 6}
 	}
 	w := newWorkspace(limit)
+	defer w.release()
 	var et epsTable
 	ierro := 0
 	result, abserr, defabs, resabs := rule(a, b)
@@ -529,6 +552,7 @@ func qagpe(f func(float64) float64, a, b float64, points []float64, epsabs, epsr
 	pts[npts+2] = b
 	nint := npts + 1
 	w := newWorkspace(limit)
+	defer w.release()
 	ndin := make([]int, npts2+1)
 	var result, abserr, resabs float64
 	a1 := pts[1]
