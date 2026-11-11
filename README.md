@@ -123,6 +123,10 @@ legacy `ode` class. `LSODA` is an automatic Runge–Kutta/BDF switch, not a port
 of ODEPACK's Adams/BDF LSODA: same purpose, different evaluation counts (see
 design.md).
 
+[docs/roadmap.md](docs/roadmap.md) lists what Julia's QuadGK, HCubature and
+OrdinaryDiffEq, R's deSolve and GSL do better, ranked by gain for cost, with an
+implementation source and an oracle for each item.
+
 ## License
 
 BSD 3-Clause; see [LICENSE](LICENSE).
