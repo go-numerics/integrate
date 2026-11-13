@@ -2,6 +2,7 @@ package integrate
 
 import (
 	"math"
+	"runtime"
 	"testing"
 )
 
@@ -93,6 +94,148 @@ func TestRadauDenseKeepsEveryStep(t *testing.T) {
 				t.Fatalf("step %d component %d differs", k, i)
 			}
 		}
+	}
+}
+
+// odeintCall is one of the two Odeint rows of bench/perf_test.go.
+func odeintCall(robertson bool) func() {
+	if robertson {
+		ts := []float64{0, 0.4, 4, 40, 400, 4000, 40000}
+		o := &OdeintOptions{RTol: 1e-8, ATol: 1e-12}
+		return func() {
+			if _, _, err := Odeint(robertsonF, []float64{1, 0, 0}, ts, o); err != nil {
+				panic(err)
+			}
+		}
+	}
+	ts := make([]float64, 101)
+	for i := range ts {
+		ts[i] = 15 * float64(i) / 100
+	}
+	return func() {
+		if _, _, err := Odeint(lotkaF, []float64{10, 5}, ts, nil); err != nil {
+			panic(err)
+		}
+	}
+}
+
+// odeintWant: the allocations of one Odeint call (the output array, the info
+// lists and the solver's own state, no interpolant per output time), exact on
+// amd64 and arm64 (the two measured: 146 and 829 before the interpolant was
+// reused). Another architecture steps differently where the compiler fuses
+// multiply-adds, so it is held to a bound a per-time interpolant would break.
+var odeintWant = map[string][2]float64{ // GOARCH: {Robertson, Lotka 101 times}
+	"amd64": {106, 99},
+	"arm64": {106, 99},
+}
+
+// TestOdeintAllocs: Odeint refills one interpolant per solver rather than
+// allocating a fresh one (and copies of its coefficients) per output time.
+func TestOdeintAllocs(t *testing.T) {
+	if raceOn {
+		t.Skip("the race detector changes allocation counts")
+	}
+	for i, name := range []string{"Robertson", "Lotka 101 times"} {
+		call := odeintCall(i == 0)
+		call()
+		a := testing.AllocsPerRun(10, call)
+		if want, ok := odeintWant[runtime.GOARCH]; ok {
+			if a != want[i] {
+				t.Errorf("%s: %v allocations per call on %s, want exactly %v", name, a, runtime.GOARCH, want[i])
+			}
+		} else if a > 130 {
+			t.Errorf("%s: %v allocations per call, want at most 130", name, a)
+		}
+	}
+}
+
+// TestDenseReusedBitIdentical: the interpolant a solver refills evaluates to the
+// same bits as a fresh one, step after step (stale coefficients, a changed order
+// or method), and refilling it leaves the fresh copies taken earlier untouched.
+func TestDenseReusedBitIdentical(t *testing.T) {
+	for _, m := range []Method{RK23, RK45, DOP853, BDF, Radau, LSODA} {
+		o := &IVPOptions{RTol: 1e-6, ATol: 1e-9}
+		core, err := newCore(vdpF(30), 0, []float64{2, 0}, 120, o)
+		if err != nil {
+			t.Fatal(err)
+		}
+		sm, err := newMethod(core, m, o)
+		if err != nil {
+			t.Fatal(err)
+		}
+		type kept struct {
+			d  denseOutput
+			ts []float64
+			ys [][]float64
+		}
+		var all []kept
+		for steps := 0; !core.finished && steps < 400; steps++ {
+			if ok, msg := core.step(sm); !ok {
+				t.Fatalf("%v: %s", m, msg)
+			}
+			r := core.denseReused(sm)
+			var ts []float64
+			var ys [][]float64
+			yr, yf := make([]float64, 2), make([]float64, 2)
+			for _, x := range []float64{0, 0.25, 0.5, 0.9, 1} {
+				tt := core.tOld + x*(core.t-core.tOld)
+				r.eval(tt, yr)
+				f := core.dense(sm)
+				f.eval(tt, yf)
+				for i := range yr {
+					if math.Float64bits(yr[i]) != math.Float64bits(yf[i]) {
+						t.Fatalf("%v step %d t=%v: reused %v, fresh %v", m, steps, tt, yr, yf)
+					}
+				}
+				ts = append(ts, tt)
+				ys = append(ys, append([]float64(nil), yf...))
+				if x == 0.5 {
+					all = append(all, kept{f, ts, ys})
+				}
+			}
+		}
+		if len(all) < 10 {
+			t.Fatalf("%v: only %d steps", m, len(all))
+		}
+		y := make([]float64, 2)
+		for k, c := range all {
+			for j, tt := range c.ts {
+				c.d.eval(tt, y)
+				for i := range y {
+					if math.Float64bits(y[i]) != math.Float64bits(c.ys[j][i]) {
+						t.Fatalf("%v: fresh copy of step %d changed after later reuse", m, k)
+					}
+				}
+			}
+		}
+	}
+}
+
+// TestDenseReusedEmptyStep: before any step (t == tOld) the interpolant is the
+// constant state; the reused one follows the state and a fresh copy does not.
+func TestDenseReusedEmptyStep(t *testing.T) {
+	core, err := newCore(lotkaF, 0, []float64{10, 5}, 1, &IVPOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sm, err := newMethod(core, RK45, &IVPOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fresh := core.dense(sm)
+	r := core.denseReused(sm)
+	core.y[0] = 7
+	if r2 := core.denseReused(sm); r2 != r {
+		t.Fatal("the reused constant interpolant is not the same object")
+	}
+	y := make([]float64, 2)
+	r.eval(0, y)
+	if y[0] != 7 || y[1] != 5 {
+		t.Errorf("reused: %v, want [7 5]", y)
+	}
+	fresh.eval(0, y)
+	if y[0] != 10 || y[1] != 5 {
+		t.Errorf("fresh: %v, want [10 5]", y)
 	}
 }
 

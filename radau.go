@@ -371,7 +371,10 @@ func (s *radauSolver) newDense() *radauDense {
 
 // denseImpl returns the interpolant of the last step as a value of its own: a
 // continuous solution keeps one per step.
-func (s *radauSolver) denseImpl() denseOutput {
+func (s *radauSolver) denseImpl(fresh bool) denseOutput {
+	if !fresh {
+		return s.sol
+	}
 	d := *s.sol
 	d.yOld = append([]float64(nil), d.yOld...)
 	d.Q = append([]float64(nil), d.Q...)

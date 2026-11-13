@@ -82,6 +82,7 @@ func changeD(D [][]float64, order int, factor float64, tmp [][]float64) {
 
 type bdfSolver struct {
 	*odeCore
+	denseBuf    *bdfDense // interpolant refilled by denseImpl(false)
 	hAbs        float64
 	newtonTol   float64
 	J           []float64
@@ -339,13 +340,29 @@ func (s *bdfSolver) stepImpl() (bool, string) {
 	return true, ""
 }
 
-func (s *bdfSolver) denseImpl() denseOutput {
+func (s *bdfSolver) denseImpl(fresh bool) denseOutput {
 	h := s.hAbs * s.direction
-	D := make([][]float64, s.order+1)
-	for k := range D {
-		D[k] = append([]float64(nil), s.D[k]...)
+	if fresh {
+		D := make([][]float64, s.order+1)
+		for k := range D {
+			D[k] = append([]float64(nil), s.D[k]...)
+		}
+		return &bdfDense{t: s.t, h: h, order: s.order, D: D}
 	}
-	return &bdfDense{t: s.t, h: h, order: s.order, D: D}
+	d := s.denseBuf
+	if d == nil {
+		d = &bdfDense{D: make([][]float64, bdfMaxOrder+1)}
+		for k := range d.D {
+			d.D[k] = make([]float64, s.n)
+		}
+		s.denseBuf = d
+	}
+	d.t, d.h, d.order = s.t, h, s.order
+	d.D = d.D[:s.order+1]
+	for k := range d.D {
+		copy(d.D[k], s.D[k])
+	}
+	return d
 }
 
 // bdfDense evaluates the interpolating polynomial of the difference table.

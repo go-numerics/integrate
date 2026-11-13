@@ -23,10 +23,12 @@ const (
 )
 
 // method is one integrator: stepImpl advances core by one accepted step,
-// denseImpl returns the interpolant of the last step.
+// denseImpl returns the interpolant of the last step: a value of its own when
+// fresh, otherwise the solver's reusable one, refilled (valid until the next
+// step or call).
 type method interface {
 	stepImpl() (bool, string)
-	denseImpl() denseOutput
+	denseImpl(fresh bool) denseOutput
 }
 
 // denseOutput is the local interpolant of one step.
@@ -55,7 +57,8 @@ type odeCore struct {
 	firstStep float64
 	jac       JacFunc
 	jacFactor []float64
-	jacBuf    []float64 // numJac's work vectors and difference matrix, reused
+	jacBuf    []float64   // numJac's work vectors and difference matrix, reused
+	constBuf  *constDense // empty-step interpolant refilled by denseReused
 
 	nfev, njev, nlu, nfevJac, nsteps int
 	finished                         bool
@@ -144,10 +147,29 @@ func (c *odeCore) step(m method) (bool, string) {
 
 // dense is OdeSolver.dense_output.
 func (c *odeCore) dense(m method) denseOutput {
+	return c.denseOf(m, true)
+}
+
+// denseReused is dense for a caller that evaluates the interpolant before the
+// next step and keeps none (Odeint): the solver refills one interpolant of its
+// own instead of allocating a fresh one, so the result is valid until the next
+// step or the next call.
+func (c *odeCore) denseReused(m method) denseOutput {
+	return c.denseOf(m, false)
+}
+
+func (c *odeCore) denseOf(m method, fresh bool) denseOutput {
 	if c.n == 0 || c.t == c.tOld {
-		return &constDense{y: append([]float64(nil), c.y...)}
+		if fresh {
+			return &constDense{y: append([]float64(nil), c.y...)}
+		}
+		if c.constBuf == nil {
+			c.constBuf = &constDense{}
+		}
+		c.constBuf.y = append(c.constBuf.y[:0], c.y...)
+		return c.constBuf
 	}
-	return m.denseImpl()
+	return m.denseImpl(fresh)
 }
 
 // initialStep returns the first step: the user's, or the empirical choice of
