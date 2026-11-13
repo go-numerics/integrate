@@ -106,6 +106,12 @@ type IVPOptions struct {
 	Band    *Bandwidth
 	BandJac BandJacFunc
 	MinStep float64
+	// Exact selects, for LSODA, the path faithful to SciPy's lsoda.c: its
+	// banded norm bnorm (which reads the band rows ml above where P is, a bug
+	// of SciPy's) and the correctly rounded power for the step ratios, so that
+	// the step sequence and the counts are SciPy's where its C is built
+	// without fused multiply-adds. The default path fixes what is a defect.
+	Exact bool
 }
 
 // Solution is the result of SolveIVP (SciPy's OdeResult).

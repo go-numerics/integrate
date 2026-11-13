@@ -137,7 +137,9 @@ type lsodaSolver struct {
 	bandJac                 BandJacFunc
 	bandBuf                 []float64 // the user's banded Jacobian, (ml+mu+1)×n
 	ml, mu                  int
-	tcrit                   float64 // itask 4 and 5: the time not to step past
+	pow                     func(x, y float64) float64 // powRecip (correctly rounded, cheap), or ddPow (Exact)
+	exact                   bool                       // the faithful lsoda.c path (see lsodaConfig)
+	tcrit                   float64                    // itask 4 and 5: the time not to step past
 
 	// the interpolant of the last step (SolveIVP), refilled by denseImpl(false)
 	denseBuf *lsodaDense
@@ -170,6 +172,7 @@ func newLsodaBase(core *odeCore) *lsodaSolver {
 	s.acor = make([]float64, n)
 	s.y1 = make([]float64, n)
 	s.tcrit = core.tBound
+	s.pow = powRecip
 	s.mxstep = 500
 	s.mxordn, s.mxords = lsodaMaxOrdAdams, lsodaMaxOrdBDF
 	if !math.IsInf(core.maxStep, 1) {
@@ -680,7 +683,7 @@ step:
 						nqm2 = min(s.nq, s.mxords)
 					} else {
 						exsm = 1 / float64(s.l)
-						rh1 = 1 / (1.2*math.Pow(dsm, exsm) + 0.0000012)
+						rh1 = 1 / (1.2*s.pow(dsm, exsm) + 0.0000012)
 						rh1it = 2 * rh1
 						pdh = s.pdlast * math.Abs(s.h)
 						if pdh*rh1 > 0.00001 {
@@ -692,10 +695,10 @@ step:
 							lm2 := s.mxords + 1
 							exm2 := 1 / float64(lm2)
 							dm2 = vmnorm(yh[lm2*n:(lm2+1)*n], ewt) / s.cm2[s.mxords-1]
-							rh2 = 1 / (1.2*math.Pow(dm2, exm2) + 0.0000012)
+							rh2 = 1 / (1.2*s.pow(dm2, exm2) + 0.0000012)
 						} else {
 							dm2 = dsm * (s.cm1[s.nq-1] / s.cm2[s.nq-1])
-							rh2 = 1 / (1.2*math.Pow(dm2, exsm) + 0.0000012)
+							rh2 = 1 / (1.2*s.pow(dm2, exsm) + 0.0000012)
 							nqm2 = s.nq
 						}
 						switchBDF = rh2 >= s.ratio*rh1
@@ -722,7 +725,7 @@ step:
 				exsm = 1 / float64(s.l)
 				if s.mxordn >= s.nq {
 					dm1 = dsm * (s.cm2[s.nq-1] / s.cm1[s.nq-1])
-					rh1 = 1 / (1.2*math.Pow(dm1, exsm) + 0.0000012)
+					rh1 = 1 / (1.2*s.pow(dm1, exsm) + 0.0000012)
 					nqm1 = s.nq
 					exm1 = exsm
 				} else {
@@ -730,7 +733,7 @@ step:
 					lm1 := s.mxordn + 1
 					exm1 = 1 / float64(lm1)
 					dm1 = vmnorm(yh[lm1*n:(lm1+1)*n], ewt) / s.cm1[s.mxordn-1]
-					rh1 = 1 / (1.2*math.Pow(dm1, exm1) + 0.0000012)
+					rh1 = 1 / (1.2*s.pow(dm1, exm1) + 0.0000012)
 				}
 				rh1it = 2 * rh1
 				pdh = s.pdnorm * math.Abs(s.h)
@@ -738,9 +741,9 @@ step:
 					rh1it = sm1[nqm1-1] / pdh
 				}
 				rh1 = cmin(rh1, rh1it)
-				rh2 = 1 / (1.2*math.Pow(dsm, exsm) + 0.0000012)
+				rh2 = 1 / (1.2*s.pow(dsm, exsm) + 0.0000012)
 				if rh1*s.ratio >= 5*rh2 {
-					dm1 = math.Pow(cmax(0.001, rh1), exm1) * dm1
+					dm1 = s.pow(cmax(0.001, rh1), exm1) * dm1
 					if dm1 > 1000*lsodaUround*pnorm {
 						rh = rh1
 						s.icount = 20
@@ -766,7 +769,7 @@ step:
 					}
 					dup = vmnorm(savf, ewt) / s.tesco[2+(s.nq-1)*3]
 					exup = 1 / (float64(s.l) + 1)
-					rhup = 1 / (1.4*math.Pow(dup, exup) + 0.0000014)
+					rhup = 1 / (1.4*s.pow(dup, exup) + 0.0000014)
 				}
 			} else {
 				// acor is kept for a possible order increase on the next step
@@ -786,12 +789,12 @@ step:
 
 		// Label 540: the step ratios for the order nq-1, nq and nq+1.
 		exsm = 1 / float64(s.l)
-		rhsm = 1 / (1.2*math.Pow(dsm, exsm) + 0.0000012)
+		rhsm = 1 / (1.2*s.pow(dsm, exsm) + 0.0000012)
 		rhdn = 0
 		if s.nq != 1 {
 			ddn = vmnorm(yh[(s.l-1)*n:s.l*n], ewt) / s.tesco[(s.nq-1)*3]
 			exdn = 1 / float64(s.nq)
-			rhdn = 1 / (1.3*math.Pow(ddn, exdn) + 0.0000013)
+			rhdn = 1 / (1.3*s.pow(ddn, exdn) + 0.0000013)
 		}
 		if s.meth == 1 {
 			pdh = cmax(math.Abs(s.h)*s.pdlast, 0.000001)

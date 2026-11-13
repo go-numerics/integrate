@@ -24,11 +24,21 @@ type lsodaConfig struct {
 	mxordn, mxords int     // the largest Adams and BDF orders; 0 for 12 and 5
 	band           *Bandwidth
 	bandJac        BandJacFunc
+	// exact is the faithful lsoda.c path: its bnorm (which reads the band
+	// ml rows above P: a SciPy bug the default path does not have) and the
+	// correctly rounded power in place of Go's math.Pow, so that the step
+	// sequence is the C library's, bit for bit, where lsoda.c is built without
+	// fused multiply-adds.
+	exact bool
 }
 
 // configure applies cfg (ODEPACK's checks of its optional inputs, as errors).
 func (s *lsodaSolver) configure(cfg lsodaConfig) error {
 	n := s.n
+	s.exact = cfg.exact
+	if cfg.exact {
+		s.pow = ddPow
+	}
 	if cfg.hmin < 0 {
 		return odeInput("hmin must be non-negative")
 	}
@@ -140,7 +150,13 @@ func (s *lsodaSolver) prjaBand(y []float64, hl0 float64) {
 		}
 		s.nfe += mba
 	}
-	s.pdnorm = bnorm(n, ab, meband, ml, mu, s.ewt) / math.Abs(hl0)
+	if s.exact {
+		s.pdnorm = bnorm(n, ab, meband, ml, mu, s.ewt) / math.Abs(hl0)
+	} else {
+		// the norm of the band P is in: rows kv = ml+mu of the storage hold the
+		// diagonal, ml rows below where lsoda.c's bnorm reads it
+		s.pdnorm = bnorm(n, ab[ml:], meband, ml, mu, s.ewt) / math.Abs(hl0)
+	}
 	for i := 0; i < n; i++ {
 		ab[(ml+mu)+i*meband]++
 	}

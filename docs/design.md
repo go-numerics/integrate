@@ -166,18 +166,36 @@ it.
   `stoda` (rates `rhup`, `rhsm`, `rhdn`, the 10 % rule, `rmax`), and its
   recoveries after 2, 3 and 10 failed error tests and 10 failed corrections.
 
-The port agrees with `lsoda.c` step for step. Run on the harmonic oscillator at
-rtol 1e-6, the Go integrator (amd64, so without fused multiply-adds) and
-`lsoda.c` compiled with them off take the same 113 first steps to the last bit
-and the same 682 evaluations in all. ODEPACK's step selection hinges on the last
-bit (its error estimates are differences of nearly equal numbers): `lsoda.c`
-itself takes 647 evaluations with fused multiply-adds and 682 without. So the
-evaluation counts are SciPy's up to what the compiler's floating-point
-contraction decides. On the three cases of the performance table (`SolveIVP`
-LSODA on the Van der Pol problem μ = 1000, `Odeint` on Robertson and on
-Lotka–Volterra at 101 times) they are equal on arm64 (1803, 1683 and 1243 calls
-of the right-hand side, against 2594, 2222 and 1880 before), and on the other
-fixtures within 20 %.
+The port agrees with `lsoda.c` step for step, and what separated its counts
+from SciPy's was ours to fix, one cause at a time. ODEPACK's step selection
+hinges on the last bit (its error estimates are differences of nearly equal
+numbers), so a last-bit difference in a step-ratio power `pow(dsm, 1/l)` sends
+the step sequence elsewhere. Go's `math.Pow` is not the C library's: on a
+tridiagonal diffusion problem (banded, finite-difference Jacobian) it gave 642
+evaluations against `lsoda.c`'s 622 (arm64), 706 against 567 (amd64). With the
+power correctly rounded, which is what a C library's is to within an ulp, the Go
+integrator and `lsoda.c` built without fused multiply-adds take the same 209
+first steps to the last bit and 566 against 567 evaluations in all, and 582
+against 582 with the analytic band. So LSODA now has the power of `lsoda.c`
+(`powRecip`, the k-th root refined in double-double arithmetic, 36 ns against
+`math.Pow`'s 17; `ddPow`, an independent double-double implementation, for the
+Exact path, which `TestPowRecip` checks it against on 320 000 cases), and the
+remaining difference is the compiler's fusing of multiply-adds (`lsoda.c` itself
+takes 647 evaluations on the harmonic problem with them and 682 without, and Go
+on arm64 fuses elsewhere than clang does).
+
+The `Exact` option (`IVPOptions.Exact`, `OdeintOptions.Exact`) is the faithful
+path: `ddPow` and `lsoda.c`'s `bnorm`. The default differs from it in one place
+only, a defect of SciPy's: `bnorm` of a banded problem reads the band storage
+`ml` rows above where P is (it passes the start of the storage with the `ml` rows
+of fill-in, and indexes as if they were absent), so `pdnorm`, which steers the
+Adams-to-BDF-to-Adams switch, is not the norm of P; the default reads P. On the
+diffusion problem both take the same counts. `TestWorkParity` holds the Exact
+path to SciPy's count and the default to at most SciPy's, on the three cases of
+the performance table (`SolveIVP` LSODA on the Van der Pol problem μ = 1000,
+`Odeint` on Robertson and on Lotka–Volterra at 101 times: 1803, 1683 and 1243
+calls of the right-hand side on arm64, against 2594, 2222 and 1880 before the
+port). On the other fixtures nfev is within 20 % of SciPy's.
 
 Options, with SciPy's names: `Odeint`'s `HMin`, `MxOrdN`, `MxOrdS`, `TCrit`
 (`itask` 4: the integration does not step past a critical time), `Band` and

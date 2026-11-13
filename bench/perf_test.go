@@ -147,6 +147,7 @@ type row struct {
 	obj, use              string                 // a method: the object built outside the loop, the call timed
 	mk                    func() func()
 	goN                   func() int // calls of the integrand by Go (the work), with run: those of SciPy
+	goNExact              func() int // the same on the Exact path (LSODA), which equals SciPy's; goN is then held to at most SciPy's
 	skipWork              bool       // no count: a compiled callback cannot be counted
 	pin                   [2]int     // a pinned (Go, SciPy) pair where the algorithms differ by design
 	within                float64    // the relative difference of the counts tolerated (rounding of a stiff solve)
@@ -357,7 +358,17 @@ func rows() []row {
 	vdpjac := "lambda t, y: [[0, 1], [-2*1000.0*y[0]*y[1] - 1, 1000.0*(1 - y[0]**2)]]"
 	// ivp adds a SolveIVP row: the SciPy call is run(cb), the Go call solves and returns the solution.
 	ivp := func(name, ref, raw string, run func(cb string) string, f integrate.ODEFunc, span [2]float64, y0 []float64, o *integrate.IVPOptions, pin [2]int) {
-		add(row{name: name, fn: "SolveIVP", ref: ref, parity: tol, raw: raw, run: run, pin: pin,
+		var exact func() int
+		if o != nil && o.Method == integrate.LSODA {
+			oe := *o
+			oe.Exact = true
+			exact = func() int {
+				n := 0
+				integrate.SolveIVP(func(t float64, y, d []float64) { n++; f(t, y, d) }, span, y0, &oe)
+				return n
+			}
+		}
+		add(row{name: name, fn: "SolveIVP", ref: ref, parity: tol, raw: raw, run: run, pin: pin, goNExact: exact,
 			mk: func() func() {
 				return func() { s, err := integrate.SolveIVP(f, span, y0, o); sinkAny, sinkErr = s, err }
 			},
@@ -413,7 +424,17 @@ func rows() []row {
 	tsR := []float64{0, 0.4, 4, 40, 400, 4000, 40000}
 	oR := &integrate.OdeintOptions{RTol: 1e-8, ATol: 1e-12}
 	odeint := func(name, ref, raw string, run func(cb string) string, f integrate.ODEFunc, y0, ts []float64, o *integrate.OdeintOptions, pin [2]int) {
+		var oe integrate.OdeintOptions
+		if o != nil {
+			oe = *o
+		}
+		oe.Exact = true
 		add(row{name: name, fn: "Odeint", ref: ref, parity: tol, raw: raw, run: run, pin: pin,
+			goNExact: func() int {
+				n := 0
+				integrate.Odeint(func(t float64, y, d []float64) { n++; f(t, y, d) }, y0, ts, &oe)
+				return n
+			},
 			mk: func() func() {
 				return func() { a, _, err := integrate.Odeint(f, y0, ts, o); sinkAny, sinkErr = a, err }
 			},
@@ -594,6 +615,20 @@ func TestWorkParity(t *testing.T) {
 			t.Fatalf("%s: %v", r.name, err)
 		}
 		goN := r.goN()
+		if r.goNExact != nil {
+			// LSODA: the Exact path is lsoda.c's (the same count), the default
+			// path may do better (never worse); its error is held to the
+			// accuracy contract by the tests of the package.
+			sci := findCount(got)
+			if want := digest([][]float64{{float64(r.goNExact())}}); got != want {
+				t.Errorf("%s: SciPy calls the callback %d times, Go (Exact) %d", r.name, sci, r.goNExact())
+			}
+			if goN > sci {
+				t.Errorf("%s: SciPy calls the callback %d times, Go %d: more", r.name, sci, goN)
+			}
+			t.Logf("%s: Go %d calls, Exact %d, SciPy %d", r.name, goN, r.goNExact(), sci)
+			continue
+		}
 		if r.pin[0] > 0 {
 			// pinned: both counts must be the recorded ones
 			if goN != r.pin[0] || got != digest([][]float64{{float64(r.pin[1])}}) {
