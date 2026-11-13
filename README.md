@@ -34,9 +34,12 @@ go get github.com/go-numerics/integrate
   ([docs/perf.md](docs/perf.md)): one case per public function, the same data
   and the same number of integrand calls on both sides, `quad` also with
   compiled (libm) callbacks so that no Python runs in SciPy's integrator. The
-  table holds allocation counts; its timings are deferred until the host is
-  idle. The October 2026 timings (6–8× on `quad`, 90–190× on `solve_ivp`,
-  taken at a host load above 8) are kept in
+  arm64 table ([docs/perf-table-arm64.md](docs/perf-table-arm64.md), one core,
+  host load under 8, 2026-11-13) has every row faster than SciPy: `quad` takes
+  0.08–0.29 of SciPy's time, `solve_ivp` 0.01–0.06, `odeint` 0.08–0.13, the
+  array rules 0.19–0.69. The amd64 table holds allocation counts only, its
+  timings deferred until an amd64 host is idle. The October 2026 timings, taken
+  at a host load above 8, are kept in
   [docs/perf-legacy.md](docs/perf-legacy.md) and carry no verdict.
 * **Verified.** Fixtures from SciPy and mpmath, the netlib Fortran as a second
   oracle, a negative control on the coefficients, 100 % statement coverage
