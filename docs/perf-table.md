@@ -49,8 +49,8 @@ ns/call, median [first quartile, third quartile]; ratio = Go / reference.
 | SolveIVP VdP1000 BDF | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF') | — | — | — | deferred | tolerance | 596 |
 | SolveIVP VdP1000 BDF jac | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF', jac) | — | — | — | deferred | tolerance | 586 |
 | SolveIVP VdP1000 LSODA | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA') | — | — | — | deferred | tolerance | 608 |
-| Odeint Robertson | `Odeint` | scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12) | — | — | — | deferred | tolerance | 146 |
-| Odeint Lotka 101 times | `Odeint` | scipy 1.18.1 integrate.odeint(lotka, 101 times) | — | — | — | deferred | tolerance | 829 |
+| Odeint Robertson | `Odeint` | scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12) | — | — | — | deferred | tolerance | 106 |
+| Odeint Lotka 101 times | `Odeint` | scipy 1.18.1 integrate.odeint(lotka, 101 times) | — | — | — | deferred | tolerance | 99 |
 | ODESolution.Eval scalar | `ODESolution.Eval` | scipy 1.18.1 integrate.sol.sol(7.5) | — | — | — | deferred | tolerance | 1 |
 | ODESolution.EvalInto scalar | `ODESolution.EvalInto` | scipy 1.18.1 integrate.sol.sol(7.5) | — | — | — | deferred | tolerance | 0 |
 | ODESolution.EvalArray 1001 points | `ODESolution.EvalArray` | scipy 1.18.1 integrate.sol.sol(t_array) | — | — | — | deferred | tolerance | 7 |

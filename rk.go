@@ -80,6 +80,8 @@ var tabDOP853 = &rkTableau{
 // rkSolver integrates with an explicit embedded pair.
 type rkSolver struct {
 	*odeCore
+	denseRK   *rkDense     // interpolant refilled by denseImpl(false)
+	denseDop  *dop853Dense // idem, DOP853
 	tab       *rkTableau
 	dop       bool
 	f         []float64 // f(t, y)
@@ -278,14 +280,40 @@ func (s *rkSolver) stiffness(h float64) {
 	}
 }
 
-func (s *rkSolver) denseImpl() denseOutput {
+func (s *rkSolver) denseImpl(fresh bool) denseOutput {
 	n := s.n
 	h := s.hPrevious
-	yOld := append([]float64(nil), s.yOld...)
+	var yOld []float64
+	if fresh {
+		yOld = append([]float64(nil), s.yOld...)
+	} else {
+		d := s.denseRK
+		if s.dop {
+			if s.denseDop == nil {
+				s.denseDop = &dop853Dense{yOld: make([]float64, n)}
+			}
+			yOld = s.denseDop.yOld
+		} else {
+			if d == nil {
+				d = &rkDense{yOld: make([]float64, n)}
+				s.denseRK = d
+			}
+			yOld = d.yOld
+		}
+		copy(yOld, s.yOld)
+	}
 	if !s.dop {
 		P := s.tab.P
 		k := len(P[0])
-		Q := make([]float64, n*k)
+		var Q []float64
+		if fresh {
+			Q = make([]float64, n*k)
+		} else {
+			if len(s.denseRK.Q) != n*k {
+				s.denseRK.Q = make([]float64, n*k)
+			}
+			Q = s.denseRK.Q
+		}
 		for i := 0; i < n; i++ {
 			for j := 0; j < k; j++ {
 				q := 0.0
@@ -295,7 +323,12 @@ func (s *rkSolver) denseImpl() denseOutput {
 				Q[i*k+j] = q
 			}
 		}
-		return &rkDense{tOld: s.tOld, h: h, yOld: yOld, Q: Q, k: k}
+		if fresh {
+			return &rkDense{tOld: s.tOld, h: h, yOld: yOld, Q: Q, k: k}
+		}
+		d := s.denseRK
+		d.tOld, d.h, d.k = s.tOld, h, k
+		return d
 	}
 	K := s.K
 	for st := dop853NStages + 1; st < dop853NStagesExtended; st++ {
@@ -309,9 +342,14 @@ func (s *rkSolver) denseImpl() denseOutput {
 		}
 		s.eval(s.tOld+dop853C[st]*h, s.yTmp, K[st])
 	}
-	F := make([][]float64, dop853InterpPower)
-	for r := range F {
-		F[r] = make([]float64, n)
+	var F [][]float64
+	if fresh || s.denseDop.F == nil {
+		F = make([][]float64, dop853InterpPower)
+		for r := range F {
+			F[r] = make([]float64, n)
+		}
+	} else {
+		F = s.denseDop.F
 	}
 	fOld := K[0]
 	for i := 0; i < n; i++ {
@@ -328,7 +366,12 @@ func (s *rkSolver) denseImpl() denseOutput {
 			F[r][i] = h * v
 		}
 	}
-	return &dop853Dense{tOld: s.tOld, h: h, yOld: yOld, F: F}
+	if fresh {
+		return &dop853Dense{tOld: s.tOld, h: h, yOld: yOld, F: F}
+	}
+	d := s.denseDop
+	d.tOld, d.h, d.F = s.tOld, h, F
+	return d
 }
 
 // rkDense is y_old + h·Σ_j Q_j x^(j+1), x = (t - t_old)/h.

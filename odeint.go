@@ -119,7 +119,7 @@ func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray
 			denseValid = false
 		}
 		if !denseValid {
-			dense = core.dense(sw)
+			dense = core.denseReused(sw)
 			denseValid = true
 		}
 		dense.eval(tk, data[k*n:(k+1)*n])

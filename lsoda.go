@@ -134,9 +134,9 @@ func (s *switchSolver) stepImpl() (bool, string) {
 	return true, ""
 }
 
-func (s *switchSolver) denseImpl() denseOutput {
+func (s *switchSolver) denseImpl(fresh bool) denseOutput {
 	if s.lastStiff {
-		return s.bdf.denseImpl()
+		return s.bdf.denseImpl(fresh)
 	}
-	return s.rk.denseImpl()
+	return s.rk.denseImpl(fresh)
 }
