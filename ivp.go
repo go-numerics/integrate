@@ -45,7 +45,7 @@ const (
 	// LSODA is ODEPACK's lsoda as SciPy 1.18.1 ships it: variable-order
 	// Adams–Moulton (1–12) on non-stiff stretches and BDF (1–5) on stiff
 	// ones, switching automatically (docs/design.md, with its accuracy
-	// contract). Banded Jacobians and min_step are not provided.
+	// contract), with Band, BandJac and MinStep.
 	LSODA
 )
 
@@ -97,6 +97,15 @@ type IVPOptions struct {
 	// Jac is the Jacobian for Radau, BDF and LSODA; nil uses finite
 	// differences.
 	Jac JacFunc
+	// Band, BandJac and MinStep are LSODA's: SciPy's lband and uband (Band;
+	// nil for a full Jacobian), the banded Jacobian (BandJac, used instead of
+	// Jac; nil: finite differences over the band, ODEPACK's) and min_step. In
+	// SciPy 1.18.1 min_step has no effect (lsoda.c never stores it); here it is
+	// ODEPACK's hmin, the smallest step, and 0 behaves as SciPy does. Other
+	// methods refuse them.
+	Band    *Bandwidth
+	BandJac BandJacFunc
+	MinStep float64
 }
 
 // Solution is the result of SolveIVP (SciPy's OdeResult).

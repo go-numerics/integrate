@@ -23,6 +23,21 @@ type OdeintOptions struct {
 	// H0 is the first step (0: automatic) and HMax the largest step
 	// (0: unbounded).
 	H0, HMax float64
+	// HMin is SciPy's hmin, ODEPACK's smallest step (0: none). SciPy 1.18.1
+	// ignores it (lsoda.c never stores it); here it is honoured.
+	HMin float64
+	// MxOrdN and MxOrdS are the largest orders of the Adams (non-stiff,
+	// default and maximum 12) and BDF (stiff, default and maximum 5) methods.
+	MxOrdN, MxOrdS int
+	// TCrit lists the times the integration must not step past (SciPy's
+	// tcrit): the solution at a later output time is integrated up to the next
+	// critical time first. Sorted in the direction of integration.
+	TCrit []float64
+	// Band is SciPy's ml and mu (nil: a full Jacobian) and BandJac the banded
+	// Jacobian in place of Jac (nil: ODEPACK's finite differences over the
+	// band).
+	Band    *Bandwidth
+	BandJac BandJacFunc
 	// MxStep bounds the number of steps between two output times
 	// (default 500).
 	MxStep int
@@ -102,14 +117,30 @@ func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray
 	if err != nil {
 		return nil, nil, err
 	}
-	sv := newLsoda(core)
+	sv, err := newLsodaConfig(core, lsodaConfig{hmin: o.HMin, mxordn: o.MxOrdN, mxords: o.MxOrdS, band: o.Band, bandJac: o.BandJac})
+	if err != nil {
+		return nil, nil, err
+	}
 	sv.mxstep = mxstep
+	itask, ci := 1, 0
+	if len(o.TCrit) > 0 {
+		itask = 4
+		sv.tcrit = o.TCrit[0]
+	}
 	for k := 1; k < len(t); k++ {
 		row := data[k*n : (k+1)*n]
+		if itask == 4 && t[k] > o.TCrit[ci] {
+			// odeint's loop: on to the next critical time, or none left
+			if ci++; ci < len(o.TCrit) {
+				sv.tcrit = o.TCrit[ci]
+			} else {
+				itask = 1
+			}
+		}
 		if n > 0 {
-			// ODEPACK's lsoda with itask = 1: it steps past t[k] and
-			// interpolates there, from the Nordsieck array (intdy).
-			if _, istate := sv.call(row, t[k], 1); istate < 0 {
+			// ODEPACK's lsoda with itask = 1 (4 with critical times): it steps
+			// past t[k] and interpolates there, from the Nordsieck array (intdy).
+			if _, istate := sv.call(row, t[k], itask); istate < 0 {
 				for i := range row {
 					row[i] = math.NaN()
 				}

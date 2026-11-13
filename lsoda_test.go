@@ -352,9 +352,9 @@ func TestLsodaTcritAfterSwitch(t *testing.T) {
 			t.Fatalf("no switch within 200 steps: istate %d", st)
 		}
 	}
-	s.tBound = s.tn + s.h/2
-	if tt, st := s.call(y, s.tBound, 5); st != 2 || tt != s.tBound {
-		t.Errorf("step to tcrit: istate %d t %v, want %v", st, tt, s.tBound)
+	s.tcrit = s.tn + s.h/2
+	if tt, st := s.call(y, s.tcrit, 5); st != 2 || tt != s.tcrit {
+		t.Errorf("step to tcrit: istate %d t %v, want %v", st, tt, s.tcrit)
 	}
 }
 
@@ -387,5 +387,173 @@ func TestLsodaSwitchesBack(t *testing.T) {
 	}
 	if !stiff || !back {
 		t.Errorf("MUsed %v: no switch to BDF and back", info.MUsed)
+	}
+}
+
+// diffusion is y_i' = k (y_{i-1} - 2 y_i + y_{i+1}), the stiff tridiagonal problem
+// whose counts lsoda.c gave (SciPy 1.18.1's, built here, harness run with jt 4
+// and 5): 621 evaluations and 15 Jacobians with the analytic band, 622 and 11
+// with the band by finite differences, on arm64 (fused multiply-adds).
+const diffK, diffN = 400.0, 20
+
+func diffusionF(_ float64, y, d []float64) {
+	for i := range y {
+		var l, r float64
+		if i > 0 {
+			l = y[i-1]
+		}
+		if i < len(y)-1 {
+			r = y[i+1]
+		}
+		d[i] = diffK * (l - 2*y[i] + r)
+	}
+}
+
+// diffusionBand is the Jacobian in band form: jac[(mu+i-j)*n+j], mu = 1.
+func diffusionBand(_ float64, y, jac []float64) {
+	n := len(y)
+	for j := 0; j < n; j++ {
+		jac[1*n+j] = -2 * diffK
+		if j > 0 {
+			jac[0*n+j] = diffK // (j-1, j)
+		}
+		if j < n-1 {
+			jac[2*n+j] = diffK // (j+1, j)
+		}
+	}
+}
+
+func diffusionY0() []float64 {
+	y0 := make([]float64, diffN)
+	for i := range y0 {
+		y0[i] = 1 / (1 + (float64(i)-10)*(float64(i)-10)/4) // no libm: the same bits in the C harness
+	}
+	return y0
+}
+
+func TestLsodaBanded(t *testing.T) {
+	band := &Bandwidth{Lower: 1, Upper: 1}
+	full, err := SolveIVP(diffusionF, [2]float64{0, 1}, diffusionY0(), &IVPOptions{Method: LSODA, RTol: 1e-6, ATol: 1e-9})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		name       string
+		bj         BandJacFunc
+		nfe, njeSc int
+	}{{"analytic band (jt 4)", diffusionBand, 621, 15}, {"finite-difference band (jt 5)", nil, 622, 11}} {
+		sol, err := SolveIVP(diffusionF, [2]float64{0, 1}, diffusionY0(), &IVPOptions{Method: LSODA, RTol: 1e-6, ATol: 1e-9, Band: band, BandJac: c.bj})
+		if err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		t.Logf("%s: %d evaluations (SciPy %d), %d Jacobians (SciPy %d), %d steps; full matrix: %d, %d, %d", c.name,
+			sol.NFev, c.nfe, sol.NJev, c.njeSc, sol.NSteps, full.NFev, full.NJev, full.NSteps)
+		if d := math.Abs(float64(sol.NFev-c.nfe)) / float64(c.nfe); d > 0.15 {
+			t.Errorf("%s: nfev %d, SciPy %d", c.name, sol.NFev, c.nfe)
+		}
+		if sol.NJev == 0 || sol.NJev > 3*c.njeSc {
+			t.Errorf("%s: njev %d, SciPy %d", c.name, sol.NJev, c.njeSc)
+		}
+		// the band is the whole Jacobian: the same solution as the full matrix, to the tolerance
+		a, b := sol.Y[len(sol.Y)-1], full.Y[len(full.Y)-1]
+		for i := range a {
+			if math.Abs(a[i]-b[i]) > 1e-4*(1e-6+1e-3*math.Abs(b[i]))/1e-3 && math.Abs(a[i]-b[i]) > 1e-7 {
+				t.Errorf("%s: y[%d] = %v, full matrix %v", c.name, i, a[i], b[i])
+			}
+		}
+	}
+	// the same through Odeint, with a dense output between steps
+	y, info, err := Odeint(diffusionF, diffusionY0(), []float64{0, 0.25, 0.5, 1}, &OdeintOptions{RTol: 1e-6, ATol: 1e-9, Band: band, BandJac: diffusionBand})
+	if err != nil || info.NJE[len(info.NJE)-1] == 0 {
+		t.Fatalf("Odeint banded: %v", err)
+	}
+	if e := math.Abs(y.At(3, 10) - full.Y[len(full.Y)-1][10]); e > 1e-7 {
+		t.Errorf("Odeint banded: y10 differs from the full matrix by %g", e)
+	}
+}
+
+// TestLuBand: the banded LU solves what the dense LU solves, on a random
+// banded matrix with pivoting (a small diagonal), and flags a singular one.
+func TestLuBand(t *testing.T) {
+	n, kl, ku := 9, 2, 3
+	lub := newLUBand(n, kl, ku)
+	dense := make([]float64, n*n)
+	seed := uint64(7)
+	next := func() float64 {
+		seed = seed*6364136223846793005 + 1442695040888963407
+		return float64(seed>>11)/(1<<53) - 0.5
+	}
+	for j := 0; j < n; j++ {
+		for i := max(0, j-ku); i <= min(n-1, j+kl); i++ {
+			v := next()
+			if (i+2*j)%4 == 0 && i != j {
+				v = 0 // a zero in the band: the factorization skips its update
+			}
+			if i == j {
+				v *= 0.01 // force row interchanges
+			}
+			dense[i*n+j] = v
+			*lub.at(i, j) = v
+		}
+	}
+	b := make([]float64, n)
+	for i := range b {
+		b[i] = next()
+	}
+	want := append([]float64(nil), b...)
+	lud := newLUReal(n)
+	lud.factor(dense)
+	lud.solve(want)
+	if !lub.factor() {
+		t.Fatal("banded LU flagged a regular matrix")
+	}
+	lub.solve(b)
+	for i := range b {
+		if math.Abs(b[i]-want[i]) > 1e-9*(1+math.Abs(want[i])) {
+			t.Errorf("x[%d] = %v, dense %v", i, b[i], want[i])
+		}
+	}
+	zero := newLUBand(3, 1, 1)
+	if zero.factor() {
+		t.Error("a zero matrix is singular")
+	}
+}
+
+// TestLsodaOptions: hmin, mxordn, mxords and the refusals of bad options.
+func TestLsodaOptions(t *testing.T) {
+	ts := []float64{0, 1, 2}
+	for _, o := range []*OdeintOptions{
+		{HMin: -1}, {MxOrdN: -1}, {MxOrdS: -1}, {BandJac: diffusionBand},
+		{Band: &Bandwidth{Lower: 5, Upper: 0}}, {Band: &Bandwidth{Lower: 0, Upper: -1}},
+		{Band: &Bandwidth{Lower: 0, Upper: 0}, Jac: func(float64, []float64, []float64) {}},
+	} {
+		if _, _, err := Odeint(lotkaF, []float64{10, 5}, ts, o); !errors.Is(err, ErrODEInput) {
+			t.Errorf("%+v: %v", *o, err)
+		}
+	}
+	if _, err := SolveIVP(lotkaF, [2]float64{0, 1}, []float64{10, 5}, &IVPOptions{Method: BDF, MinStep: 1e-3}); !errors.Is(err, ErrODEInput) {
+		t.Errorf("BDF with MinStep: %v", err)
+	}
+	// low maximum orders: the method still integrates, with the orders bounded
+	for _, o := range []*OdeintOptions{{MxOrdN: 2, MxOrdS: 2, RTol: 1e-8, ATol: 1e-10}, {MxOrdN: 20, MxOrdS: 9}} {
+		sv, err := newLsodaConfig(&odeCore{n: 1, maxStep: math.Inf(1)}, lsodaConfig{mxordn: o.MxOrdN, mxords: o.MxOrdS})
+		if err != nil || sv.mxordn > 12 || sv.mxords > 5 || (o.MxOrdN == 2 && sv.mxordn != 2) {
+			t.Errorf("orders %d %d: %v %d %d", o.MxOrdN, o.MxOrdS, err, sv.mxordn, sv.mxords)
+		}
+	}
+	stiff := func(tt float64, y, d []float64) { d[0] = -1e4 * (y[0] - math.Cos(tt)) }
+	for _, mx := range [][2]int{{2, 2}, {3, 1}, {1, 3}} {
+		ts := make([]float64, 30)
+		for i := range ts {
+			ts[i] = 3 * float64(i) / 29
+		}
+		y, info, err := Odeint(stiff, []float64{0}, ts, &OdeintOptions{RTol: 1e-8, ATol: 1e-10, MxOrdN: mx[0], MxOrdS: mx[1], MxStep: 100000})
+		if err != nil {
+			t.Fatalf("orders %v: %v", mx, err)
+		}
+		if e := math.Abs(y.At(29, 0) - (1e8*math.Cos(3)+1e4*math.Sin(3))/(1+1e8)); e > 1e-6 {
+			t.Errorf("orders %v: error %g", mx, e)
+		}
+		_ = info
 	}
 }

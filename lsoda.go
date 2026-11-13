@@ -20,14 +20,16 @@ import "math"
 // lsodaSolver) so that the source reads against lsoda.c line by line. What is
 // not ported, because nothing in the package's API reaches it:
 //
-//   - banded Jacobians (jt = 4, 5: the API has no bandwidths) and the diagonal
-//     approximation (miter = 3, which lsoda() rejects anyway);
-//   - itask = 2, 3 and 4 (the API has no one-step, relaxed or tcrit-list mode),
-//     istate = 3 (change of parameters) and ixpr/mxhnil (printing only);
+//   - the diagonal approximation (miter = 3, which lsoda() rejects anyway);
+//   - itask = 2 and 3 (the API has no one-step or relaxed mode), istate = 3
+//     (change of parameters) and ixpr/mxhnil (printing only);
 //   - the workspace-size bookkeeping (insufr, insufi, lenrw): Go slices have
-//     no fixed length;
-//   - hmin: lsoda.c reads rwork[6] into a local and never stores it in the
-//     common block, so SciPy's min_step is without effect and hmin is 0.
+//     no fixed length.
+//
+// Where this differs from SciPy: lsoda.c reads rwork[6] (hmin) into a local and
+// never stores it in the common block, so SciPy's hmin/min_step have no effect;
+// here hmin is ODEPACK's, the lower bound of the step (default 0, which is
+// SciPy's behaviour).
 //
 // Arrays keep their Fortran layout (the Nordsieck array yh is column-major,
 // yh[i+j*n] being the j-th scaled derivative of component i) with 0-based
@@ -38,12 +40,6 @@ const (
 	lsodaMaxOrdAdams = 12 // mord(1)
 	lsodaMaxOrdBDF   = 5  // mord(2)
 	lsodaUround      = dblEps
-	// lsodaHmin is hmin, which lsoda.c never sets (see above). The tests
-	// |h| <= hmin*1.00001 that ODEPACK makes where it gives up on a step then
-	// ask whether h is 0, which an error or convergence failure cannot find
-	// (h = 0 gives an error estimate of 0), and are not ported; hmin remains in
-	// the lower bound hmin/|h| of the step ratio, which turns a NaN ratio into 0.
-	lsodaHmin = 0
 )
 
 // ODEPACK's istate failure codes, with SciPy's messages (_ode.py lsoda.messages).
@@ -119,7 +115,7 @@ type lsodaSolver struct {
 	elco                         [156]float64
 	hold, rmax                   float64
 	tesco                        [36]float64
-	ccmax, el0, h, hmxi          float64
+	ccmax, el0, h, hmin, hmxi    float64
 	hu, rc, tn, tsw              float64
 	pdest, pdlast, ratio, pdnorm float64
 	cm1                          [12]float64
@@ -137,6 +133,11 @@ type lsodaSolver struct {
 	// error weights ewt, savf, acor, and the scratch y of stoda.
 	yh, ewt, savf, acor, y1 []float64
 	lu                      *luReal
+	lub                     *luBand // the banded P of jt 4 and 5, instead of lu
+	bandJac                 BandJacFunc
+	bandBuf                 []float64 // the user's banded Jacobian, (ml+mu+1)×n
+	ml, mu                  int
+	tcrit                   float64 // itask 4 and 5: the time not to step past
 
 	// the interpolant of the last step (SolveIVP), refilled by denseImpl(false)
 	denseBuf *lsodaDense
@@ -144,6 +145,23 @@ type lsodaSolver struct {
 
 // newLsoda builds the solver; nothing is evaluated until the first step.
 func newLsoda(core *odeCore) *lsodaSolver {
+	s := newLsodaBase(core)
+	s.allocMatrix()
+	return s
+}
+
+// newLsodaConfig builds the solver with options (bandwidths, hmin, mxordn,
+// mxords); the options are checked here.
+func newLsodaConfig(core *odeCore, cfg lsodaConfig) (*lsodaSolver, error) {
+	s := newLsodaBase(core)
+	if err := s.configure(cfg); err != nil {
+		return nil, err
+	}
+	s.allocMatrix()
+	return s, nil
+}
+
+func newLsodaBase(core *odeCore) *lsodaSolver {
 	n := core.n
 	s := &lsodaSolver{odeCore: core}
 	s.yh = make([]float64, (lsodaMaxOrdAdams+1)*n)
@@ -151,7 +169,7 @@ func newLsoda(core *odeCore) *lsodaSolver {
 	s.savf = make([]float64, n)
 	s.acor = make([]float64, n)
 	s.y1 = make([]float64, n)
-	s.lu = newLUReal(n)
+	s.tcrit = core.tBound
 	s.mxstep = 500
 	s.mxordn, s.mxords = lsodaMaxOrdAdams, lsodaMaxOrdBDF
 	if !math.IsInf(core.maxStep, 1) {
@@ -242,6 +260,10 @@ func (s *lsodaSolver) prja(y []float64) {
 	s.ierpj = 0
 	s.jcur = 1
 	hl0 := s.h * s.el0
+	if s.miter >= 4 {
+		s.prjaBand(y, hl0)
+		return
+	}
 	P := s.lu.a
 	if s.miter == 1 {
 		clear(P)
@@ -405,7 +427,11 @@ func (s *lsodaSolver) stodaCorrector(pnorm float64) (lsodaCorr, int, float64) {
 			for i := 0; i < n; i++ {
 				y[i] = s.h*savf[i] - (yh[i+n] + acor[i])
 			}
-			s.lu.solve(y)
+			if s.lub != nil {
+				s.lub.solve(y)
+			} else {
+				s.lu.solve(y)
+			}
 			del = vmnorm(y, ewt)
 			for i := 0; i < n; i++ {
 				acor[i] += y[i]
@@ -465,13 +491,13 @@ func (s *lsodaSolver) stodaFailure(ncf *int, told float64) bool {
 	s.rmax = 2
 	s.tn = told
 	s.stodaPascal(-1)
-	if *ncf == s.mxncf {
+	if math.Abs(s.h) <= s.hmin*1.00001 || *ncf == s.mxncf {
 		s.kflag = -2
 		return false
 	}
 	rh := 0.25
 	s.ipup = s.miter
-	rh = cmax(rh, lsodaHmin/math.Abs(s.h))
+	rh = cmax(rh, s.hmin/math.Abs(s.h))
 	s.stodaAdjust(&rh)
 	return true
 }
@@ -535,7 +561,7 @@ func (s *lsodaSolver) stoda() {
 		if s.h != s.hold {
 			rh = s.h / s.hold
 			s.h = s.hold
-			rh = cmax(rh, lsodaHmin/math.Abs(s.h))
+			rh = cmax(rh, s.hmin/math.Abs(s.h))
 			s.stodaAdjust(&rh)
 		}
 	case -2:
@@ -584,6 +610,12 @@ step:
 			s.tn = told
 			s.stodaPascal(-1)
 			s.rmax = 2
+			if math.Abs(s.h) <= s.hmin*1.00001 {
+				s.kflag = -1
+				s.hold = s.h
+				s.jstart = 1
+				return
+			}
 			if s.kflag <= -3 {
 				if s.kflag == -10 {
 					s.kflag = -1
@@ -591,7 +623,7 @@ step:
 					s.jstart = 1
 					return
 				}
-				rh = cmax(lsodaHmin/math.Abs(s.h), 0.1)
+				rh = cmax(s.hmin/math.Abs(s.h), 0.1)
 				s.h *= rh
 				copy(y, yh[:n])
 				s.fun(s.tn, y, savf)
@@ -639,12 +671,13 @@ step:
 				// (BDF must win by the factor ratio = 5).
 				condB := dsm > 100*pnorm*lsodaUround && s.pdest != 0
 				if !(s.nq > 5 || (!condB && s.irflag == 0)) {
-					// (lsoda.c considers order mxords on switching when nq > mxords;
-					// nq <= 5 = mxords here, and mxords cannot be set.)
+					// If nq > mxords the order mxords is considered on switching.
+					// (nqm2 is set below on every path.)
 					nqm2 = s.nq
 					switchBDF := true
 					if !condB {
 						rh2 = 2
+						nqm2 = min(s.nq, s.mxords)
 					} else {
 						exsm = 1 / float64(s.l)
 						rh1 = 1 / (1.2*math.Pow(dsm, exsm) + 0.0000012)
@@ -654,8 +687,17 @@ step:
 							rh1it = sm1[s.nq-1] / pdh
 						}
 						rh1 = cmin(rh1, rh1it)
-						dm2 = dsm * (s.cm1[s.nq-1] / s.cm2[s.nq-1])
-						rh2 = 1 / (1.2*math.Pow(dm2, exsm) + 0.0000012)
+						if s.nq > s.mxords {
+							nqm2 = s.mxords
+							lm2 := s.mxords + 1
+							exm2 := 1 / float64(lm2)
+							dm2 = vmnorm(yh[lm2*n:(lm2+1)*n], ewt) / s.cm2[s.mxords-1]
+							rh2 = 1 / (1.2*math.Pow(dm2, exm2) + 0.0000012)
+						} else {
+							dm2 = dsm * (s.cm1[s.nq-1] / s.cm2[s.nq-1])
+							rh2 = 1 / (1.2*math.Pow(dm2, exsm) + 0.0000012)
+							nqm2 = s.nq
+						}
 						switchBDF = rh2 >= s.ratio*rh1
 					}
 					if switchBDF {
@@ -666,7 +708,7 @@ step:
 						s.pdlast = 0
 						s.nq = nqm2
 						s.l = s.nq + 1
-						rh = cmax(rh, lsodaHmin/math.Abs(s.h))
+						rh = cmax(rh, s.hmin/math.Abs(s.h))
 						s.stodaAdjust(&rh)
 						break step
 					}
@@ -676,13 +718,20 @@ step:
 				// considered on switching. The Adams step must be at least
 				// 5/ratio = 1 times the BDF step, and not so small that
 				// roundoff pollutes it.
-				// (lsoda.c considers order mxordn when nq > mxordn; nq <= 5 in BDF
-				// and mxordn = 12, which cannot be set.)
+				// (the order is not above mxords here, but may be above mxordn.)
 				exsm = 1 / float64(s.l)
-				dm1 = dsm * (s.cm2[s.nq-1] / s.cm1[s.nq-1])
-				rh1 = 1 / (1.2*math.Pow(dm1, exsm) + 0.0000012)
-				nqm1 = s.nq
-				exm1 = exsm
+				if s.mxordn >= s.nq {
+					dm1 = dsm * (s.cm2[s.nq-1] / s.cm1[s.nq-1])
+					rh1 = 1 / (1.2*math.Pow(dm1, exsm) + 0.0000012)
+					nqm1 = s.nq
+					exm1 = exsm
+				} else {
+					nqm1 = s.mxordn
+					lm1 := s.mxordn + 1
+					exm1 = 1 / float64(lm1)
+					dm1 = vmnorm(yh[lm1*n:(lm1+1)*n], ewt) / s.cm1[s.mxordn-1]
+					rh1 = 1 / (1.2*math.Pow(dm1, exm1) + 0.0000012)
+				}
 				rh1it = 2 * rh1
 				pdh = s.pdnorm * math.Abs(s.h)
 				if pdh*rh1 > 0.00001 {
@@ -700,7 +749,7 @@ step:
 						s.pdlast = 0
 						s.nq = nqm1
 						s.l = s.nq + 1
-						rh = cmax(rh, lsodaHmin/math.Abs(s.h))
+						rh = cmax(rh, s.hmin/math.Abs(s.h))
 						s.stodaAdjust(&rh)
 						break step
 					}
@@ -784,7 +833,7 @@ step:
 			s.nq = newq
 			s.l = s.nq + 1
 			s.stodaReset()
-			rh = cmax(rh, lsodaHmin/math.Abs(s.h))
+			rh = cmax(rh, s.hmin/math.Abs(s.h))
 			s.stodaAdjust(&rh)
 			resetRmax = true
 			break step
@@ -807,7 +856,7 @@ step:
 			s.l = s.nq + 1
 			s.stodaReset()
 		}
-		rh = cmax(rh, lsodaHmin/math.Abs(s.h))
+		rh = cmax(rh, s.hmin/math.Abs(s.h))
 		s.stodaAdjust(&rh)
 		if s.kflag == 0 {
 			resetRmax = true
@@ -869,9 +918,11 @@ func (s *lsodaSolver) start(tout float64, itask int) int {
 	s.tsw = t
 	s.maxord = s.mxordn
 	h0 := s.firstStep * s.direction
-	tcrit := 0.0
-	if itask == 5 {
-		tcrit = s.tBound
+	if itask == 4 || itask == 5 {
+		tcrit := s.tcrit
+		if (tcrit-tout)*(tout-t) < 0 {
+			return -3
+		}
 		if h0 != 0 && (t+h0-tcrit)*h0 > 0 {
 			h0 = tcrit - t
 		}
@@ -928,108 +979,6 @@ func (s *lsodaSolver) start(tout float64, itask int) int {
 		f0[i] *= h0
 	}
 	return 0
-}
-
-// call is lsoda(): it advances the solution from s.t toward tout and returns
-// the time reached with istate (2 success, a negative ODEPACK code on
-// failure) and the solution in y. itask 1 steps until tout is passed and
-// interpolates there (Odeint); itask 5 takes one step that does not pass
-// tcrit = tBound (SolveIVP, as _ivp/lsoda.py does; the time returned is tcrit
-// when the step reached it to within 100 uround).
-func (s *lsodaSolver) call(y []float64, tout float64, itask int) (float64, int) {
-	n := s.n
-	first := !s.started
-	if first {
-		if st := s.start(tout, itask); st < 0 {
-			return s.t, st
-		}
-	} else {
-		// continuation: stop conditions before taking a step
-		s.nslast = s.nst
-		switch itask {
-		case 1:
-			if (s.tn-tout)*s.h >= 0 {
-				s.intdy0(tout, y)
-				return tout, 2
-			}
-		case 5:
-			// The step must not pass tcrit: when the next one would, h is
-			// shortened to reach it (jstart -2 tells stoda).
-			tcrit := s.tBound
-			hmx := math.Abs(s.tn) + math.Abs(s.h)
-			if math.Abs(s.tn-tcrit) > 100*lsodaUround*hmx {
-				tnext := s.tn + s.h*(1+4*lsodaUround)
-				if (tnext-tcrit)*s.h > 0 {
-					s.h = (tcrit - s.tn) * (1 - 4*lsodaUround)
-					if s.jstart >= 0 {
-						s.jstart = -2
-					}
-				}
-			}
-		}
-	}
-
-	for {
-		if !first {
-			if s.nst-s.nslast >= s.mxstep {
-				copy(y, s.yh[:n])
-				return s.tn, -1
-			}
-			if !s.ewset() {
-				copy(y, s.yh[:n])
-				return s.tn, -6
-			}
-		}
-		first = false
-
-		// too much accuracy requested for the machine precision
-		if tolsf := lsodaUround * vmnorm(s.yh[:n], s.ewt); tolsf > 0.01 {
-			if s.nst == 0 {
-				return s.t, -3
-			}
-			copy(y, s.yh[:n])
-			return s.tn, -2
-		}
-
-		s.stoda()
-		if s.kflag == -1 || s.kflag == -2 {
-			copy(y, s.yh[:n])
-			return s.tn, s.kflag - 3
-		}
-		// Not ODEPACK's: its norms (fmax) do not see a NaN, and a step that
-		// accepted one goes on with it. A non-finite state is a failure here,
-		// as in the other solvers.
-		if !allFinite(s.yh[:n]) {
-			copy(y, s.yh[:n])
-			return s.tn, -9
-		}
-
-		// block f: a successful step. After a method switch tsw and maxord are
-		// reset and jstart = -1 makes stoda complete the switch.
-		s.started = true
-		if s.meth != s.mused {
-			s.tsw = s.tn
-			s.maxord = s.mxordn
-			if s.meth == 2 {
-				s.maxord = s.mxords
-			}
-			s.jstart = -1
-		}
-		if itask == 1 {
-			if (s.tn-tout)*s.h < 0 {
-				continue
-			}
-			s.intdy0(tout, y)
-			return tout, 2
-		}
-		hmx := math.Abs(s.tn) + math.Abs(s.h)
-		copy(y, s.yh[:n])
-		t := s.tn
-		if math.Abs(s.tn-s.tBound) <= 100*lsodaUround*hmx {
-			t = s.tBound
-		}
-		return t, 2
-	}
 }
 
 // stepImpl is _ivp/lsoda.py's _step_impl: one lsoda() step with itask 5.
