@@ -116,7 +116,7 @@ func TestLsodaExactBanded(t *testing.T) {
 		ex, def := run(true), run(false)
 		t.Logf("%s: Exact %d evaluations %d Jacobians %d steps, default %d, %d, %d; lsoda.c %d", c.name,
 			ex.NFev, ex.NJev, ex.NSteps, def.NFev, def.NJev, def.NSteps, c.want)
-		if d := math.Abs(float64(ex.NFev-c.want)) / float64(c.want); d > 0.01 {
+		if d := math.Abs(float64(ex.NFev-c.want)) / float64(c.want); d > 0.035 { // 0 to 1 % on arm64 and amd64; 2.5 % on ppc64le and s390x (other fused multiply-adds)
 			t.Errorf("%s: Exact takes %d evaluations, lsoda.c %d", c.name, ex.NFev, c.want)
 		}
 		if ex.NJev < 8 || ex.NJev > 10 {
