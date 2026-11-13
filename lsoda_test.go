@@ -392,8 +392,9 @@ func TestLsodaSwitchesBack(t *testing.T) {
 
 // diffusion is y_i' = k (y_{i-1} - 2 y_i + y_{i+1}), the stiff tridiagonal problem
 // whose counts lsoda.c gave (SciPy 1.18.1's, built here, harness run with jt 4
-// and 5): 621 evaluations and 15 Jacobians with the analytic band, 622 and 11
-// with the band by finite differences, on arm64 (fused multiply-adds).
+// and 5): 582 evaluations and 9 Jacobians with the analytic band, 564 and 9
+// with the band by finite differences, on arm64 (fused multiply-adds; 582 and
+// 567 without).
 const diffK, diffN = 400.0, 20
 
 func diffusionF(_ float64, y, d []float64) {
@@ -441,17 +442,17 @@ func TestLsodaBanded(t *testing.T) {
 		name       string
 		bj         BandJacFunc
 		nfe, njeSc int
-	}{{"analytic band (jt 4)", diffusionBand, 621, 15}, {"finite-difference band (jt 5)", nil, 622, 11}} {
+	}{{"analytic band (jt 4)", diffusionBand, 582, 9}, {"finite-difference band (jt 5)", nil, 564, 9}} {
 		sol, err := SolveIVP(diffusionF, [2]float64{0, 1}, diffusionY0(), &IVPOptions{Method: LSODA, RTol: 1e-6, ATol: 1e-9, Band: band, BandJac: c.bj})
 		if err != nil {
 			t.Fatalf("%s: %v", c.name, err)
 		}
 		t.Logf("%s: %d evaluations (SciPy %d), %d Jacobians (SciPy %d), %d steps; full matrix: %d, %d, %d", c.name,
 			sol.NFev, c.nfe, sol.NJev, c.njeSc, sol.NSteps, full.NFev, full.NJev, full.NSteps)
-		if d := math.Abs(float64(sol.NFev-c.nfe)) / float64(c.nfe); d > 0.15 {
+		if d := math.Abs(float64(sol.NFev-c.nfe)) / float64(c.nfe); d > 0.01 { // 566 against 564 at most: the correctly rounded power makes the steps lsoda.c's
 			t.Errorf("%s: nfev %d, SciPy %d", c.name, sol.NFev, c.nfe)
 		}
-		if sol.NJev == 0 || sol.NJev > 3*c.njeSc {
+		if sol.NJev != c.njeSc {
 			t.Errorf("%s: njev %d, SciPy %d", c.name, sol.NJev, c.njeSc)
 		}
 		// the band is the whole Jacobian: the same solution as the full matrix, to the tolerance

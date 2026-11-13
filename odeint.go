@@ -38,6 +38,8 @@ type OdeintOptions struct {
 	// band).
 	Band    *Bandwidth
 	BandJac BandJacFunc
+	// Exact selects the path faithful to SciPy's lsoda.c (see IVPOptions.Exact).
+	Exact bool
 	// MxStep bounds the number of steps between two output times
 	// (default 500).
 	MxStep int
@@ -117,7 +119,7 @@ func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray
 	if err != nil {
 		return nil, nil, err
 	}
-	sv, err := newLsodaConfig(core, lsodaConfig{hmin: o.HMin, mxordn: o.MxOrdN, mxords: o.MxOrdS, band: o.Band, bandJac: o.BandJac})
+	sv, err := newLsodaConfig(core, lsodaConfig{hmin: o.HMin, mxordn: o.MxOrdN, mxords: o.MxOrdS, band: o.Band, bandJac: o.BandJac, exact: o.Exact})
 	if err != nil {
 		return nil, nil, err
 	}

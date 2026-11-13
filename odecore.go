@@ -349,7 +349,7 @@ func (c *odeCore) numJac(t float64, y, f, J []float64) {
 
 // newMethod builds the integrator selected by m on core.
 func newMethod(core *odeCore, m Method, o *IVPOptions) (method, error) {
-	if m != LSODA && (o.Band != nil || o.BandJac != nil || o.MinStep != 0) {
+	if m != LSODA && (o.Band != nil || o.BandJac != nil || o.MinStep != 0 || o.Exact) {
 		return nil, odeInput("Band, BandJac and MinStep are LSODA's options, not %v's", m)
 	}
 	switch m {
@@ -360,7 +360,7 @@ func newMethod(core *odeCore, m Method, o *IVPOptions) (method, error) {
 	case BDF:
 		return newBDF(core), nil
 	case LSODA:
-		return newLsodaConfig(core, lsodaConfig{hmin: o.MinStep, band: o.Band, bandJac: o.BandJac})
+		return newLsodaConfig(core, lsodaConfig{hmin: o.MinStep, band: o.Band, bandJac: o.BandJac, exact: o.Exact})
 	}
 	return nil, odeInput("unknown method %v", m)
 }
