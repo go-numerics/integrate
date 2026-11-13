@@ -227,6 +227,24 @@ func SolveIVP(f ODEFunc, tSpan [2]float64, y0 []float64, opts *IVPOptions) (*Sol
 func runIVP(core *odeCore, solver method, tEval []float64, o *IVPOptions) (*Solution, error) {
 	t0 := core.t
 	sol := &Solution{}
+	// The stored states come out of chunks of at least 4096 floats (one state
+	// when n is larger): a handful of allocations per call, not one per step.
+	// Each state keeps its own capacity, so appending to one cannot overwrite
+	// its neighbour.
+	var arena []float64
+	take := func(n int) []float64 {
+		if len(arena) < n {
+			arena = make([]float64, max(n, 4096))
+		}
+		r := arena[:n:n]
+		arena = arena[n:]
+		return r
+	}
+	store := func(y []float64) []float64 {
+		r := take(len(y))
+		copy(r, y)
+		return r
+	}
 	ne := len(o.Events)
 	var g, gNew []float64
 	var eventCount []int
@@ -255,7 +273,7 @@ func runIVP(core *odeCore, solver method, tEval []float64, o *IVPOptions) (*Solu
 		}
 	} else {
 		sol.T = append(sol.T, t0)
-		sol.Y = append(sol.Y, append([]float64(nil), core.y...))
+		sol.Y = append(sol.Y, store(core.y))
 	}
 	var interps []denseOutput
 	var ti []float64
@@ -314,7 +332,7 @@ func runIVP(core *odeCore, solver method, tEval []float64, o *IVPOptions) (*Solu
 		}
 		if tEval == nil {
 			sol.T = append(sol.T, t)
-			sol.Y = append(sol.Y, append([]float64(nil), y...))
+			sol.Y = append(sol.Y, store(y))
 		} else {
 			var step []float64
 			if core.direction > 0 {
@@ -334,7 +352,7 @@ func runIVP(core *odeCore, solver method, tEval []float64, o *IVPOptions) (*Solu
 					dense = core.dense(solver)
 				}
 				for _, ts := range step {
-					yv := make([]float64, core.n)
+					yv := take(core.n)
 					dense.eval(ts, yv)
 					sol.T = append(sol.T, ts)
 					sol.Y = append(sol.Y, yv)
