@@ -211,6 +211,34 @@ func TestDenseReusedBitIdentical(t *testing.T) {
 	}
 }
 
+// TestDenseReusedEmptyStep: before any step (t == tOld) the interpolant is the
+// constant state; the reused one follows the state and a fresh copy does not.
+func TestDenseReusedEmptyStep(t *testing.T) {
+	core, err := newCore(lotkaF, 0, []float64{10, 5}, 1, &IVPOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sm, err := newMethod(core, RK45, &IVPOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fresh := core.dense(sm)
+	r := core.denseReused(sm)
+	core.y[0] = 7
+	if r2 := core.denseReused(sm); r2 != r {
+		t.Fatal("the reused constant interpolant is not the same object")
+	}
+	y := make([]float64, 2)
+	r.eval(0, y)
+	if y[0] != 7 || y[1] != 5 {
+		t.Errorf("reused: %v, want [7 5]", y)
+	}
+	fresh.eval(0, y)
+	if y[0] != 10 || y[1] != 5 {
+		t.Errorf("fresh: %v, want [10 5]", y)
+	}
+}
+
 // TestRadauAllocsPerStep: a Radau step allocates the state it stores and the
 // growth of the lists, not an interpolant, and a finite-difference Jacobian none.
 func TestRadauAllocsPerStep(t *testing.T) {
