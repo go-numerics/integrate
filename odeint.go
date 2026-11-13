@@ -97,43 +97,34 @@ func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray
 	if err != nil {
 		return nil, nil, err
 	}
-	sw := newSwitching(core)
-	var dense denseOutput
-	denseValid := false
-	stepsSince := 0
-	lastH := 0.0
+	sv := newLsoda(core)
+	sv.mxstep = mxstep
 	for k := 1; k < len(t); k++ {
-		tk := t[k]
-		for core.direction*(tk-core.t) > 0 {
-			if stepsSince >= mxstep {
-				info.Message = fmt.Sprintf("Excess work done on this call (MxStep = %d).", mxstep)
-				return out(), info, fmt.Errorf("%w (MxStep = %d at t = %g)", ErrExcessWork, mxstep, core.t)
+		row := data[k*n : (k+1)*n]
+		if n > 0 {
+			// ODEPACK's lsoda with itask = 1: it steps past t[k] and
+			// interpolates there, from the Nordsieck array (intdy).
+			if _, istate := sv.call(row, t[k], 1); istate < 0 {
+				for i := range row {
+					row[i] = math.NaN()
+				}
+				info.Message = lsodaMessages[istate]
+				switch istate {
+				case -1:
+					info.Message = fmt.Sprintf("Excess work done on this call (MxStep = %d).", mxstep)
+					return out(), info, fmt.Errorf("%w (MxStep = %d at t = %g)", ErrExcessWork, mxstep, sv.tn)
+				case -4, -5, -9:
+					return out(), info, fmt.Errorf("%w at t = %g: %s", ErrStepTooSmall, sv.tn, info.Message)
+				}
+				return out(), info, fmt.Errorf("%w: %s", ErrODEInput, info.Message)
 			}
-			tPrev := core.t
-			if ok, msg := core.step(sw); !ok {
-				info.Message = msg
-				return out(), info, fmt.Errorf("%w at t = %g", ErrStepTooSmall, core.t)
-			}
-			lastH = core.t - tPrev
-			stepsSince++
-			denseValid = false
 		}
-		if !denseValid {
-			dense = core.denseReused(sw)
-			denseValid = true
-		}
-		dense.eval(tk, data[k*n:(k+1)*n])
-		stepsSince = 0
-		info.HU = append(info.HU, lastH)
-		info.TCur = append(info.TCur, core.t)
-		info.NST = append(info.NST, core.nsteps)
-		info.NFE = append(info.NFE, core.nfev)
-		info.NJE = append(info.NJE, core.njev)
-		mused := 1
-		if sw.lastStiff {
-			mused = 2
-		}
-		info.MUsed = append(info.MUsed, mused)
+		info.HU = append(info.HU, sv.hu)
+		info.TCur = append(info.TCur, sv.tn)
+		info.NST = append(info.NST, sv.nst)
+		info.NFE = append(info.NFE, sv.nfe)
+		info.NJE = append(info.NJE, sv.nje)
+		info.MUsed = append(info.MUsed, sv.mused)
 	}
 	return out(), info, nil
 }

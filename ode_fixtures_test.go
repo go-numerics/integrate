@@ -190,25 +190,14 @@ func runODEFixtures(t testing.TB) []odeRun {
 }
 
 // TestODEAgainstSciPy compares every fixture run with SciPy's solve_ivp on
-// the same problem, method and tolerances. For the methods that are ports
-// (RK45, RK23, DOP853, Radau, BDF) the number of steps and of evaluations
-// must match SciPy's closely (exactly in most runs: the step sequence is the
-// same); for every method the end state must be as accurate as SciPy's,
-// measured against a high-accuracy reference.
+// the same problem, method and tolerances. Every method is a port (LSODA is
+// ODEPACK's): the number of steps and of evaluations must match SciPy's
+// closely (exactly in most runs: the step sequence is the same); the end state
+// must be as accurate as SciPy's, measured against a high-accuracy reference.
 func TestODEAgainstSciPy(t *testing.T) {
 	runs := runODEFixtures(t)
 	exact, total := 0, 0
 	maxTDev := 0.0
-	// The SciPy error of an explicit (non-stiff) or Radau (stiff) run on the
-	// same problem and tolerance: the LSODA-style method runs those
-	// algorithms, so it is held to their accuracy as well as ODEPACK's.
-	peer := map[string]float64{}
-	for _, r := range runs {
-		if r.rec.Method == "RK45" || r.rec.Method == "DOP853" || r.rec.Method == "Radau" {
-			k := fmt.Sprintf("%s/%g", r.rec.Problem, r.rec.RTol)
-			peer[k] = math.Max(peer[k], r.scipyErr)
-		}
-	}
 	for _, r := range runs {
 		rec := r.rec
 		id := fmt.Sprintf("%s/%s/rtol=%g/jac=%v", rec.Problem, rec.Method, rec.RTol, rec.Jac)
@@ -217,15 +206,6 @@ func TestODEAgainstSciPy(t *testing.T) {
 			continue
 		}
 		s := r.sol
-		if rec.Method == "LSODA" {
-			// ODEPACK's LSODA is a different algorithm (Adams/BDF);
-			// only accuracy is compared.
-			bound := math.Max(math.Max(20, 5*r.scipyErr), 2*peer[fmt.Sprintf("%s/%g", rec.Problem, rec.RTol)])
-			if r.achieved > bound {
-				t.Errorf("%s: scaled error %.3g, SciPy/ODEPACK %.3g", id, r.achieved, r.scipyErr)
-			}
-			continue
-		}
 		total++
 		if s.NFev == rec.NFev && s.NSteps == rec.NSteps && s.NJev == rec.NJev && s.NLU == rec.NLU {
 			exact++
@@ -233,7 +213,17 @@ func TestODEAgainstSciPy(t *testing.T) {
 			t.Logf("%s: nfev %d/%d steps %d/%d njev %d/%d nlu %d/%d (ours/SciPy)", id,
 				s.NFev, rec.NFev, s.NSteps, rec.NSteps, s.NJev, rec.NJev, s.NLU, rec.NLU)
 		}
-		if d := math.Abs(float64(s.NFev-rec.NFev)) / float64(rec.NFev); d > 0.05 {
+		// LSODA's step, order and method selection hinges on the last bit
+		// (the error estimates are differences of nearly equal numbers): the
+		// same C source compiled without fused multiply-adds takes 682
+		// evaluations on the harmonic problem at rtol 1e-6 where it takes 647
+		// with them, and the fixtures are those of one compiler on one machine.
+		// Its counts are held to 20 %, the other methods' to 5 %.
+		limit := 0.05
+		if rec.Method == "LSODA" {
+			limit = 0.2
+		}
+		if d := math.Abs(float64(s.NFev-rec.NFev)) / float64(rec.NFev); d > limit {
 			t.Errorf("%s: nfev %d differs from SciPy's %d by %.1f%%", id, s.NFev, rec.NFev, 100*d)
 		}
 		for k, tk := range rec.TFirst {
@@ -241,11 +231,19 @@ func TestODEAgainstSciPy(t *testing.T) {
 				maxTDev = math.Max(maxTDev, math.Abs(s.T[k]-tk)/math.Max(1e-300, math.Abs(tk)))
 			}
 		}
-		if r.achieved > math.Max(2*r.scipyErr, 1e-3) && r.achieved > 1 {
+		bound := math.Max(2*r.scipyErr, 1e-3)
+		if rec.Method == "LSODA" {
+			// ODEPACK controls the local error only: its global error runs to
+			// thousands of tolerances on a long oscillation (SciPy's: 2.1e3 on
+			// the harmonic problem at rtol 1e-9, ours 4.8e3). The bound is
+			// 5 times what ODEPACK itself achieves, and 20 tolerances at least.
+			bound = math.Max(20, 5*r.scipyErr)
+		}
+		if r.achieved > bound && r.achieved > 1 {
 			t.Errorf("%s: scaled error %.3g, SciPy %.3g", id, r.achieved, r.scipyErr)
 		}
 	}
-	t.Logf("SciPy %s: identical (nfev, steps, njev, nlu) on %d/%d runs of ported methods", loadODEFixture(t).Meta["scipy"], exact, total)
+	t.Logf("SciPy %s: identical (nfev, steps, njev, nlu) on %d/%d runs", loadODEFixture(t).Meta["scipy"], exact, total)
 	t.Logf("largest relative deviation of the first five step times: %.3g", maxTDev)
 }
 

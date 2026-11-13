@@ -259,10 +259,4 @@ func TestLinalgEdges(t *testing.T) {
 	if math.Abs(real(bc[0])-1) > 1e-15 || math.Abs(real(bc[1])-1) > 1e-15 {
 		t.Errorf("complex pivoted: %v", bc)
 	}
-	if spectralRadius(make([]float64, 4), 2) != 0 {
-		t.Error("spectral radius of zero")
-	}
-	if r := spectralRadius([]float64{-3, 0, 0, 1}, 2); math.Abs(r-3) > 1e-6 {
-		t.Errorf("spectral radius %g", r)
-	}
 }

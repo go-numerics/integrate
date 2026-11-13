@@ -351,13 +351,13 @@ func (c *odeCore) numJac(t float64, y, f, J []float64) {
 func newMethod(core *odeCore, m Method, o *IVPOptions) (method, error) {
 	switch m {
 	case RK45, RK23, DOP853:
-		return newRK(core, m, nil, 0), nil
+		return newRK(core, m), nil
 	case Radau:
 		return newRadau(core), nil
 	case BDF:
-		return newBDF(core, nil, 0), nil
+		return newBDF(core), nil
 	case LSODA:
-		return newSwitching(core), nil
+		return newLsoda(core), nil
 	}
 	return nil, odeInput("unknown method %v", m)
 }

@@ -103,20 +103,14 @@ type bdfSolver struct {
 	errv        []float64
 }
 
-// newBDF builds the BDF solver. f0, if non-nil, is f(t0, y0) and h0 > 0 the
-// initial step (the LSODA-style switch hands both over); otherwise f is
-// evaluated and the step selected as SciPy does.
-func newBDF(core *odeCore, f0 []float64, h0 float64) *bdfSolver {
+// newBDF builds the BDF solver: f is evaluated and the first step selected as
+// SciPy does.
+func newBDF(core *odeCore) *bdfSolver {
 	n := core.n
 	s := &bdfSolver{odeCore: core, order: 1}
 	f := make([]float64, n)
-	if f0 != nil {
-		copy(f, f0)
-		s.hAbs = h0
-	} else {
-		core.eval(core.t, core.y, f)
-		s.hAbs = core.initialStep(f, 1)
-	}
+	core.eval(core.t, core.y, f)
+	s.hAbs = core.initialStep(f, 1)
 	s.newtonTol = newtonTolerance(core.rtol)
 	s.J = make([]float64, n*n)
 	core.jacobian(core.t, core.y, f, s.J)

@@ -237,10 +237,28 @@ func TestOdeintErrors(t *testing.T) {
 	if e := math.Abs(y.At(2, 0) - back.Y[len(back.Y)-1][0]); e > 1e-8 {
 		t.Errorf("backward odeint error %g", e)
 	}
-	// A large MxStep so that the step-size floor, not the step budget, stops
-	// it on every architecture (s390x reached 500 steps first).
-	_, _, err = Odeint(func(_ float64, y, d []float64) { d[0] = 1 / (1 - y[0]) }, []float64{0}, []float64{0, 1}, &OdeintOptions{MxStep: 1000000})
-	if !errors.Is(err, ErrStepTooSmall) {
+	// A blow-up at t = 1/2: ODEPACK keeps shrinking the step (there is no hmin),
+	// so the default budget of 500 steps stops it, and so does a large one (or
+	// the overflow of the state first, on an architecture that steps further).
+	blow := func(_ float64, y, d []float64) { d[0] = 1 / (1 - y[0]) }
+	_, _, err = Odeint(blow, []float64{0}, []float64{0, 1}, nil)
+	if !errors.Is(err, ErrExcessWork) {
 		t.Errorf("blow-up: %v", err)
+	}
+	_, _, err = Odeint(blow, []float64{0}, []float64{0, 1}, &OdeintOptions{MxStep: 1000000})
+	if !errors.Is(err, ErrExcessWork) && !errors.Is(err, ErrStepTooSmall) {
+		t.Errorf("blow-up, large budget: %v", err)
+	}
+	// A right-hand side that turns NaN: a refusal, not NaN rows (ODEPACK's
+	// norms do not see a NaN).
+	nan := func(tt float64, y, d []float64) {
+		d[0] = -y[0]
+		if tt > 0.5 {
+			d[0] = math.NaN()
+		}
+	}
+	y, info, err = Odeint(nan, []float64{1}, []float64{0, 0.25, 1}, nil)
+	if !errors.Is(err, ErrStepTooSmall) || y.At(1, 0) == 0 || !math.IsNaN(y.At(2, 0)) || len(info.NST) != 1 {
+		t.Errorf("NaN right-hand side: %v %v", err, info)
 	}
 }
