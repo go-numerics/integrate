@@ -1,16 +1,24 @@
 {
   "schema": 1,
-  "status": "deferred",
-  "date": "2026-11-08T15:01:34+01:00",
+  "status": "measured",
+  "date": "2026-11-13T13:36:59+01:00",
   "commit": "",
   "repo": "go-numerics/integrate",
-  "go_version": "go1.27.3",
+  "go_version": "go1.27.4",
   "machine": "darwin/arm64, 16 CPUs",
+  "ref_versions": {
+    "blas": "accelerate unknown",
+    "mpmath": "1.4.1",
+    "numpy": "2.5.4",
+    "python": "3.12.12",
+    "scipy": "1.18.1",
+    "statsmodels": "0.15.0"
+  },
   "max_load": 8,
   "load": {
-    "min": 0,
-    "median": 0,
-    "max": 0
+    "min": 5.994140625,
+    "median": 6.6923828125,
+    "max": 7.3134765625
   },
   "valid": true,
   "rows": [
@@ -20,17 +28,71 @@
       "reference": "scipy 1.18.1 integrate.quad(1/(1+25x^2), -1, 1)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 114822,
+      "ref_iters": 10279,
+      "rounds": [
+        {
+          "load_before": 6.92041015625,
+          "load_after": 6.92041015625,
+          "go_first": true,
+          "go_ns": 930.9692393443765,
+          "ref_ns": 10612.178519311217
+        },
+        {
+          "load_before": 6.92041015625,
+          "load_after": 6.92041015625,
+          "go_first": false,
+          "go_ns": 915.2931581055896,
+          "ref_ns": 10557.208094172585
+        },
+        {
+          "load_before": 6.92041015625,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 915.5137952657157,
+          "ref_ns": 10529.242436034634
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 914.5086133319398,
+          "ref_ns": 10683.578169082595
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 919.0859939732804,
+          "ref_ns": 10590.52437007491
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 909.6093692846318,
+          "ref_ns": 10726.24204689172
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 922.7851979585794,
+          "ref_ns": 10417.015273859324
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 915.5137952657157,
+        "q1": 914.9008857187647,
+        "q3": 920.9355959659299
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 10590.52437007491,
+        "q1": 10543.22526510361,
+        "q3": 10647.878344196906
       },
-      "ratio": 0
+      "ratio": 0.08644650286180683,
+      "verdict": "faster"
     },
     {
       "name": "Quad singular (Python)",
@@ -38,17 +100,71 @@
       "reference": "scipy 1.18.1 integrate.quad(log(x)/sqrt(x), 0, 1)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 39404,
+      "ref_iters": 5248,
+      "rounds": [
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2874.046188204243,
+          "ref_ns": 22650.17625762195
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 2945.572353060603,
+          "ref_ns": 22733.438262195123
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2893.6032128717898,
+          "ref_ns": 22613.368521341465
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 2893.5112425134503,
+          "ref_ns": 22646.770198170732
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2904.8616130342098,
+          "ref_ns": 22788.006478658535
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 2898.270708557507,
+          "ref_ns": 22561.555259146342
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2861.620444624911,
+          "ref_ns": 22398.056402439026
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2893.6032128717898,
+        "q1": 2883.778715358847,
+        "q3": 2901.566160795858
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 22646.770198170732,
+        "q1": 22587.461890243903,
+        "q3": 22691.807259908535
       },
-      "ratio": 0
+      "ratio": 0.1277711208950015,
+      "verdict": "faster"
     },
     {
       "name": "Quad infinite (Python)",
@@ -56,17 +172,71 @@
       "reference": "scipy 1.18.1 integrate.quad(exp(-x^2), -inf, inf)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 48888,
+      "ref_iters": 7040,
+      "rounds": [
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2084.173682703322,
+          "ref_ns": 15492.234943181818
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 2066.611438389789,
+          "ref_ns": 15554.054119318182
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2062.157380134184,
+          "ref_ns": 15534.74190340909
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 2067.723674521355,
+          "ref_ns": 15488.233948863637
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2073.246502209131,
+          "ref_ns": 15471.833522727273
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": false,
+          "go_ns": 2083.385329733268,
+          "ref_ns": 15426.550710227273
+        },
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.9267578125,
+          "go_first": true,
+          "go_ns": 2088.0609761086566,
+          "ref_ns": 15404.651988636364
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2073.246502209131,
+        "q1": 2067.1675564555717,
+        "q3": 2083.779506218295
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 15488.233948863637,
+        "q1": 15449.192116477272,
+        "q3": 15513.488423295454
       },
-      "ratio": 0
+      "ratio": 0.1338594515717038,
+      "verdict": "faster"
     },
     {
       "name": "Quad cos weight (Python)",
@@ -74,17 +244,71 @@
       "reference": "scipy 1.18.1 integrate.quad(exp(-x), 0, 10, weight='cos', wvar=20)",
       "parity": "tolerance",
       "allocs": 1,
+      "go_iters": 142670,
+      "ref_iters": 42244,
+      "rounds": [
+        {
+          "load_before": 6.9267578125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 762.4249386696572,
+          "ref_ns": 2582.3381071868193
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 765.4923319548609,
+          "ref_ns": 2591.2614809203674
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 764.6156094483774,
+          "ref_ns": 2598.7625461604016
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 763.5986892829607,
+          "ref_ns": 2611.030560552978
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 809.8595780472419,
+          "ref_ns": 2604.38561689234
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 762.7184481670989,
+          "ref_ns": 2612.9114903891677
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 751.6097707997477,
+          "ref_ns": 2585.5673705141558
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 763.5986892829607,
+        "q1": 762.5716934183781,
+        "q3": 765.0539707016192
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2598.7625461604016,
+        "q1": 2588.4144257172616,
+        "q3": 2607.708088722659
       },
-      "ratio": 0
+      "ratio": 0.29383165091830193,
+      "verdict": "faster"
     },
     {
       "name": "Quad sin weight, infinite (Python)",
@@ -92,17 +316,71 @@
       "reference": "scipy 1.18.1 integrate.quad(exp(-x), 0, inf, weight='sin', wvar=1)",
       "parity": "tolerance",
       "allocs": 2,
+      "go_iters": 49348,
+      "ref_iters": 8405,
+      "rounds": [
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 3621.327105455135,
+          "ref_ns": 13173.185603807258
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 3644.7264124179296,
+          "ref_ns": 13093.88756692445
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 3621.158243495177,
+          "ref_ns": 13252.562998215348
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 3667.627522898598,
+          "ref_ns": 13192.836525877454
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 3643.470029180514,
+          "ref_ns": 13072.149553837002
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 3712.971305827997,
+          "ref_ns": 13017.46972040452
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 3681.895233849396,
+          "ref_ns": 13033.685306365258
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 3644.7264124179296,
+        "q1": 3632.3985673178245,
+        "q3": 3674.761378373997
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 13093.88756692445,
+        "q1": 13052.91743010113,
+        "q3": 13183.011064842356
       },
-      "ratio": 0
+      "ratio": 0.27835326932427745,
+      "verdict": "faster"
     },
     {
       "name": "Quad alg-loga weight (Python)",
@@ -110,17 +388,71 @@
       "reference": "scipy 1.18.1 integrate.quad(1/(1+x), 0, 1, weight='alg-loga', wvar=(-0.5, 0))",
       "parity": "tolerance",
       "allocs": 1,
+      "go_iters": 229644,
+      "ref_iters": 29033,
+      "rounds": [
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": true,
+          "go_ns": 702.4134834787758,
+          "ref_ns": 3736.8985292598077
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.6923828125,
+          "go_first": false,
+          "go_ns": 699.989801605964,
+          "ref_ns": 3783.0227671959497
+        },
+        {
+          "load_before": 6.6923828125,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 695.421861664141,
+          "ref_ns": 3753.7773223573176
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 706.9386049711728,
+          "ref_ns": 3787.2248820307927
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 704.9627162042117,
+          "ref_ns": 3793.665828539937
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 712.4280756301057,
+          "ref_ns": 3815.378190335136
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 700.7857814704499,
+          "ref_ns": 3750.828092170978
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 702.4134834787758,
+        "q1": 700.387791538207,
+        "q3": 705.9506605876923
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 3783.0227671959497,
+        "q1": 3752.302707264148,
+        "q3": 3790.4453552853647
       },
-      "ratio": 0
+      "ratio": 0.18567519327921422,
+      "verdict": "faster"
     },
     {
       "name": "Quad cauchy weight (Python)",
@@ -128,17 +460,71 @@
       "reference": "scipy 1.18.1 integrate.quad(1/(1+x^2), -1, 2, weight='cauchy', wvar=0.5)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 122766,
+      "ref_iters": 9343,
+      "rounds": [
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 1137.3788996953554,
+          "ref_ns": 11843.550358557208
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 1136.4910317188799,
+          "ref_ns": 11863.485069035642
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 1138.606511574866,
+          "ref_ns": 12185.294659103072
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 1135.136153332356,
+          "ref_ns": 11846.293053623032
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 1132.698589185931,
+          "ref_ns": 12108.971957615327
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 1147.6715214310152,
+          "ref_ns": 12005.89125548539
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 1146.0780427805744,
+          "ref_ns": 12017.807449427379
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1137.3788996953554,
+        "q1": 1135.8135925256179,
+        "q3": 1142.3422771777202
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 12005.89125548539,
+        "q1": 11854.889061329337,
+        "q3": 12063.389703521352
       },
-      "ratio": 0
+      "ratio": 0.09473506593487564,
+      "verdict": "faster"
     },
     {
       "name": "Quad points (Python)",
@@ -146,17 +532,71 @@
       "reference": "scipy 1.18.1 integrate.quad(sqrt|x-0.3|, 0, 1, points=[0.3])",
       "parity": "tolerance",
       "allocs": 1,
+      "go_iters": 70400,
+      "ref_iters": 3403,
+      "rounds": [
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 2555.321960227273,
+          "ref_ns": 31643.733470467236
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 2572.180994318182,
+          "ref_ns": 32103.9156626506
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": true,
+          "go_ns": 2546.399744318182,
+          "ref_ns": 31712.81486923303
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.556640625,
+          "go_first": false,
+          "go_ns": 2532.880553977273,
+          "ref_ns": 31468.679400528945
+        },
+        {
+          "load_before": 6.556640625,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 2554.533025568182,
+          "ref_ns": 31843.71642668234
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 2564.2702414772725,
+          "ref_ns": 31773.22685865413
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 2590.1171875,
+          "ref_ns": 32422.592712312664
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2555.321960227273,
+        "q1": 2550.4663849431818,
+        "q3": 2568.2256178977273
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 31773.22685865413,
+        "q1": 31678.274169850134,
+        "q3": 31973.81604466647
       },
-      "ratio": 0
+      "ratio": 0.08042374706210476,
+      "verdict": "faster"
     },
     {
       "name": "Quad log (Python)",
@@ -164,17 +604,71 @@
       "reference": "scipy 1.18.1 integrate.quad(log, 0, 1)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 60010,
+      "ref_iters": 9020,
+      "rounds": [
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 1801.683752707882,
+          "ref_ns": 12422.177605321507
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 1815.3474420929845,
+          "ref_ns": 12339.615742793792
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 1812.7777203799367,
+          "ref_ns": 12236.123392461197
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 1777.582902849525,
+          "ref_ns": 12297.14068736142
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 1792.9025662389602,
+          "ref_ns": 12323.258425720622
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 1789.137227128812,
+          "ref_ns": 12296.965077605322
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 1774.5070321613064,
+          "ref_ns": 12392.331929046562
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1792.9025662389602,
+        "q1": 1783.3600649891684,
+        "q3": 1807.2307365439092
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 12323.258425720622,
+        "q1": 12297.052882483371,
+        "q3": 12365.973835920176
       },
-      "ratio": 0
+      "ratio": 0.14548932630487438,
+      "verdict": "faster"
     },
     {
       "name": "Quad sin 0..100 (Python)",
@@ -182,17 +676,71 @@
       "reference": "scipy 1.18.1 integrate.quad(sin, 0, 100)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 40605,
+      "ref_iters": 7076,
+      "rounds": [
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 2562.316832902352,
+          "ref_ns": 17019.80879027699
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 2570.703534047531,
+          "ref_ns": 17248.580836630867
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 2590.758527274966,
+          "ref_ns": 16959.723007348784
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 2574.0036202438123,
+          "ref_ns": 17210.199971735445
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 2561.4097032385175,
+          "ref_ns": 17133.550028264555
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": false,
+          "go_ns": 2550.0153921930796,
+          "ref_ns": 17046.24194460147
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 2537.974609038296,
+          "ref_ns": 17086.57786885246
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2562.316832902352,
+        "q1": 2555.712547715799,
+        "q3": 2572.353577145672
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 17086.57786885246,
+        "q1": 17033.02536743923,
+        "q3": 17171.875
       },
-      "ratio": 0
+      "ratio": 0.1499607968646116,
+      "verdict": "faster"
     },
     {
       "name": "Quad log (libm)",
@@ -200,17 +748,71 @@
       "reference": "scipy 1.18.1 integrate.quad(libm log, 0, 1)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 58666,
+      "ref_iters": 8803,
+      "rounds": [
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.51171875,
+          "go_first": true,
+          "go_ns": 1806.1625813929704,
+          "ref_ns": 11737.740997387255
+        },
+        {
+          "load_before": 6.51171875,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 1787.2269798520438,
+          "ref_ns": 11437.795865046008
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 1775.7304060273411,
+          "ref_ns": 11186.683516982846
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 1837.5720178638394,
+          "ref_ns": 11371.871293877088
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 1796.5317730883305,
+          "ref_ns": 11328.723162558219
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 1783.1970988306684,
+          "ref_ns": 11265.184255367489
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 1782.0472334912897,
+          "ref_ns": 11286.70146540952
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1787.2269798520438,
+        "q1": 1782.622166160979,
+        "q3": 1801.3471772406506
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 11328.723162558219,
+        "q1": 11275.942860388504,
+        "q3": 11404.833579461549
       },
-      "ratio": 0
+      "ratio": 0.15776067207281438,
+      "verdict": "faster"
     },
     {
       "name": "Quad sin 0..100 (libm)",
@@ -218,17 +820,71 @@
       "reference": "scipy 1.18.1 integrate.quad(libm sin, 0, 100)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 65986,
+      "ref_iters": 8576,
+      "rounds": [
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 2557.5343103082473,
+          "ref_ns": 12294.285447761195
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 2537.124662807262,
+          "ref_ns": 12290.879664179105
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 2553.770875640287,
+          "ref_ns": 12302.574043843284
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 2562.788576364683,
+          "ref_ns": 12347.729127798508
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 2582.0243536507746,
+          "ref_ns": 12269.147388059702
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 2578.9270905949747,
+          "ref_ns": 12373.610424440298
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 2574.4937107871365,
+          "ref_ns": 12332.177005597016
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2562.788576364683,
+        "q1": 2555.6525929742675,
+        "q3": 2576.710400691056
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 12302.574043843284,
+        "q1": 12292.58255597015,
+        "q3": 12339.953066697763
       },
-      "ratio": 0
+      "ratio": 0.20831320073600437,
+      "verdict": "faster"
     },
     {
       "name": "Quad cos weight (libm)",
@@ -236,17 +892,71 @@
       "reference": "scipy 1.18.1 integrate.quad(libm exp, 0, 5, weight='cos', wvar=20)",
       "parity": "tolerance",
       "allocs": 1,
+      "go_iters": 188678,
+      "ref_iters": 10993,
+      "rounds": [
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 753.1237081164736,
+          "ref_ns": 9946.784317292822
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 754.4363518799224,
+          "ref_ns": 9948.107068134268
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 757.6172526738676,
+          "ref_ns": 10044.372964613845
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": false,
+          "go_ns": 749.2595374129469,
+          "ref_ns": 9982.87164559265
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 6.470703125,
+          "go_first": true,
+          "go_ns": 798.3756240791189,
+          "ref_ns": 10090.220322023106
+        },
+        {
+          "load_before": 6.470703125,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 759.0502496316476,
+          "ref_ns": 10243.461748385336
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 752.6191023860757,
+          "ref_ns": 10084.70917856818
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 754.4363518799224,
+        "q1": 752.8714052512746,
+        "q3": 758.3337511527576
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 10044.372964613845,
+        "q1": 9965.489356863458,
+        "q3": 10087.464750295643
       },
-      "ratio": 0
+      "ratio": 0.07511034830524402,
+      "verdict": "faster"
     },
     {
       "name": "DblQuad",
@@ -254,17 +964,71 @@
       "reference": "scipy 1.18.1 integrate.dblquad(exp(-xy), 0, 1, 0, x)",
       "parity": "tolerance",
       "allocs": 2,
+      "go_iters": 14830,
+      "ref_iters": 2344,
+      "rounds": [
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 6914.773027646662,
+          "ref_ns": 58901.254692832765
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 6894.108226567768,
+          "ref_ns": 59035.338310580206
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 6908.119824679703,
+          "ref_ns": 59031.7478668942
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 6984.460013486177,
+          "ref_ns": 59318.86348122867
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 6924.584153742414,
+          "ref_ns": 58906.97909556314
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 6956.099662845583,
+          "ref_ns": 58828.24957337884
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 6877.464059339178,
+          "ref_ns": 59299.68344709898
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 6914.773027646662,
+        "q1": 6901.114025623736,
+        "q3": 6940.341908293998
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 59031.7478668942,
+        "q1": 58904.116894197956,
+        "q3": 59167.51087883959
       },
-      "ratio": 0
+      "ratio": 0.11713651175022313,
+      "verdict": "faster"
     },
     {
       "name": "TplQuad",
@@ -272,17 +1036,71 @@
       "reference": "scipy 1.18.1 integrate.tplquad(exp(-(x^2+y^2+z^2)), unit cube)",
       "parity": "tolerance",
       "allocs": 2,
+      "go_iters": 763,
+      "ref_iters": 76,
+      "rounds": [
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 137868.1730013106,
+          "ref_ns": 1403531.25
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 139451.88990825688,
+          "ref_ns": 1407926.5394736843
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 138008.51900393184,
+          "ref_ns": 1399895.8289473683
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 139430.26474442988,
+          "ref_ns": 1395922.144736842
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 138679.55439056357,
+          "ref_ns": 1403174.3421052631
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 137747.92529488858,
+          "ref_ns": 1390696.2763157894
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 138449.9239842726,
+          "ref_ns": 1400584.9868421052
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 138449.9239842726,
+        "q1": 137938.34600262123,
+        "q3": 139054.90956749674
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1400584.9868421052,
+        "q1": 1397908.9868421052,
+        "q3": 1403352.7960526315
       },
-      "ratio": 0
+      "ratio": 0.09885149797045537,
+      "verdict": "faster"
     },
     {
       "name": "NQuad",
@@ -290,17 +1108,71 @@
       "reference": "scipy 1.18.1 integrate.nquad(exp(-|x|^2), unit cube)",
       "parity": "tolerance",
       "allocs": 2,
+      "go_iters": 787,
+      "ref_iters": 78,
+      "rounds": [
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": true,
+          "go_ns": 136949.80940279542,
+          "ref_ns": 1383087.076923077
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.3134765625,
+          "go_first": false,
+          "go_ns": 136626.4294790343,
+          "ref_ns": 1382747.858974359
+        },
+        {
+          "load_before": 7.3134765625,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 136443.61499364677,
+          "ref_ns": 1396311.435897436
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 137111.49936467598,
+          "ref_ns": 1385303.9487179487
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 136098.42312579416,
+          "ref_ns": 1384215.282051282
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 135561.62642947905,
+          "ref_ns": 1385423.076923077
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 138984.4879288437,
+          "ref_ns": 1380846.1538461538
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 136626.4294790343,
+        "q1": 136271.01905972045,
+        "q3": 137030.6543837357
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1384215.282051282,
+        "q1": 1382917.467948718,
+        "q3": 1385363.512820513
       },
-      "ratio": 0
+      "ratio": 0.09870316507166882,
+      "verdict": "faster"
     },
     {
       "name": "FixedQuad (vectorised numpy.cos)",
@@ -308,17 +1180,71 @@
       "reference": "scipy 1.18.1 integrate.fixed_quad(np.cos, 0, 1, n=5)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 4371880,
+      "ref_iters": 26832,
+      "rounds": [
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 25.340195064823373,
+          "ref_ns": 6651.667449314252
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 25.338508147524635,
+          "ref_ns": 6692.049903100775
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 26.808337374310366,
+          "ref_ns": 6747.998360166965
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 25.261310008508925,
+          "ref_ns": 6594.125782647585
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 25.257335745720376,
+          "ref_ns": 6533.442643112701
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 25.15549191652104,
+          "ref_ns": 6727.554785330948
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 25.103759709781603,
+          "ref_ns": 6785.365086463924
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 25.261310008508925,
+        "q1": 25.206413831120706,
+        "q3": 25.339351606174006
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 6692.049903100775,
+        "q1": 6622.896615980919,
+        "q3": 6737.776572748957
       },
-      "ratio": 0
+      "ratio": 0.0037748239140900676,
+      "verdict": "faster"
     },
     {
       "name": "GaussLegendre 50 (cached)",
@@ -326,17 +1252,71 @@
       "reference": "scipy 1.18.1 integrate._cached_roots_legendre(50)",
       "parity": "exact",
       "allocs": 0,
+      "go_iters": 14437838,
+      "ref_iters": 1449800,
+      "rounds": [
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 7.650900224812053,
+          "ref_ns": 72.04381638846738
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 7.779607237593329,
+          "ref_ns": 72.27439370947717
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 7.614286363373796,
+          "ref_ns": 72.03088357014761
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 7.694177757085237,
+          "ref_ns": 71.84933577045109
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": true,
+          "go_ns": 7.641705704136589,
+          "ref_ns": 72.17288591529866
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2880859375,
+          "go_first": false,
+          "go_ns": 7.668521768979538,
+          "ref_ns": 72.6379210925645
+        },
+        {
+          "load_before": 7.2880859375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 7.789329884432836,
+          "ref_ns": 73.39940543523245
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 7.668521768979538,
+        "q1": 7.646302964474321,
+        "q3": 7.736892497339284
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 72.17288591529866,
+        "q1": 72.03734997930749,
+        "q3": 72.45615740102083
       },
-      "ratio": 0
+      "ratio": 0.10625211492830194,
+      "verdict": "faster"
     },
     {
       "name": "Trapezoid 1e5",
@@ -344,17 +1324,71 @@
       "reference": "scipy 1.18.1 integrate.trapezoid(y, x)",
       "parity": "exact",
       "allocs": 1,
+      "go_iters": 2129,
+      "ref_iters": 2116,
+      "rounds": [
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 51112.885392202916,
+          "ref_ns": 75950.37807183365
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": false,
+          "go_ns": 50995.69422263974,
+          "ref_ns": 72264.13799621929
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 51054.38797557539,
+          "ref_ns": 103882.62051039697
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": false,
+          "go_ns": 52891.69375293565,
+          "ref_ns": 78260.94801512288
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 51088.93048379521,
+          "ref_ns": 69450.69328922495
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": false,
+          "go_ns": 50411.343353687174,
+          "ref_ns": 68465.50094517958
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 50603.80460310005,
+          "ref_ns": 74334.82986767485
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 51054.38797557539,
+        "q1": 50799.74941286989,
+        "q3": 51100.90793799906
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 74334.82986767485,
+        "q1": 70857.41564272212,
+        "q3": 77105.66304347827
       },
-      "ratio": 0
+      "ratio": 0.6868165040057062,
+      "verdict": "faster"
     },
     {
       "name": "Simpson 1e5",
@@ -362,17 +1396,71 @@
       "reference": "scipy 1.18.1 integrate.simpson(y, x=x)",
       "parity": "exact",
       "allocs": 1,
+      "go_iters": 1145,
+      "ref_iters": 288,
+      "rounds": [
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 94021.06986899563,
+          "ref_ns": 499253.61805555556
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": false,
+          "go_ns": 94794.24978165938,
+          "ref_ns": 484074.0729166667
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 94571.76069868996,
+          "ref_ns": 503656.1076388889
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": false,
+          "go_ns": 94621.7615720524,
+          "ref_ns": 491330.7291666667
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 95436.53537117904,
+          "ref_ns": 492016.49305555556
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": false,
+          "go_ns": 94148.5807860262,
+          "ref_ns": 483562.6423611111
+        },
+        {
+          "load_before": 7.2646484375,
+          "load_after": 7.2646484375,
+          "go_first": true,
+          "go_ns": 94727.14759825327,
+          "ref_ns": 489447.0486111111
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 94621.7615720524,
+        "q1": 94360.17074235808,
+        "q3": 94760.69868995633
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 491330.7291666667,
+        "q1": 486760.5607638889,
+        "q3": 495635.05555555556
       },
-      "ratio": 0
+      "ratio": 0.1925826250121541,
+      "verdict": "faster"
     },
     {
       "name": "CumulativeTrapezoid 1e5",
@@ -380,17 +1468,71 @@
       "reference": "scipy 1.18.1 integrate.cumulative_trapezoid(y, x, initial=0)",
       "parity": "exact",
       "allocs": 1,
+      "go_iters": 922,
+      "ref_iters": 588,
+      "rounds": [
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 182525.75921908894,
+          "ref_ns": 328614.5119047619
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": false,
+          "go_ns": 184125.67787418654,
+          "ref_ns": 335480.0170068027
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 185531.9956616052,
+          "ref_ns": 321591.41156462586
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": false,
+          "go_ns": 180729.39262472885,
+          "ref_ns": 332511.47959183675
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 180712.76247288502,
+          "ref_ns": 364021.96598639456
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": false,
+          "go_ns": 180568.05856832972,
+          "ref_ns": 344905.25680272107
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 178815.43709327548,
+          "ref_ns": 351650.93537414965
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 180729.39262472885,
+        "q1": 180640.41052060737,
+        "q3": 183325.71854663774
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 335480.0170068027,
+        "q1": 330562.9957482993,
+        "q3": 348278.0960884354
       },
-      "ratio": 0
+      "ratio": 0.5387188013081092,
+      "verdict": "faster"
     },
     {
       "name": "Romb 65537",
@@ -398,17 +1540,71 @@
       "reference": "scipy 1.18.1 integrate.romb(y, dx=0.001)",
       "parity": "exact",
       "allocs": 34,
+      "go_iters": 3055,
+      "ref_iters": 2140,
+      "rounds": [
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 32848.213420621934,
+          "ref_ns": 62016.68644859813
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": false,
+          "go_ns": 32995.090016366616,
+          "ref_ns": 61701.265887850466
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 32807.433387888705,
+          "ref_ns": 61945.0546728972
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": false,
+          "go_ns": 32883.34697217676,
+          "ref_ns": 61198.5785046729
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 33817.66219312602,
+          "ref_ns": 62550.13644859813
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": false,
+          "go_ns": 33297.25859247136,
+          "ref_ns": 62256.3668224299
+        },
+        {
+          "load_before": 7.2431640625,
+          "load_after": 7.2431640625,
+          "go_first": true,
+          "go_ns": 32959.90180032733,
+          "ref_ns": 62121.14485981308
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 32959.90180032733,
+        "q1": 32865.78019639935,
+        "q3": 33146.174304418986
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 62016.68644859813,
+        "q1": 61823.160280373835,
+        "q3": 62188.75584112149
       },
-      "ratio": 0
+      "ratio": 0.5314682819703016,
+      "verdict": "faster"
     },
     {
       "name": "TrapezoidND axis 0",
@@ -416,17 +1612,71 @@
       "reference": "scipy 1.18.1 integrate.trapezoid(g, dx=0.1, axis=0)",
       "parity": "exact",
       "allocs": 8,
+      "go_iters": 5062,
+      "ref_iters": 2350,
+      "rounds": [
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 40378.062030817855,
+          "ref_ns": 61469.84042553192
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": false,
+          "go_ns": 39683.672461477676,
+          "ref_ns": 61065.21276595745
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 40624.20150138285,
+          "ref_ns": 61165.78
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": false,
+          "go_ns": 40058.071513235875,
+          "ref_ns": 61038.1914893617
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 41850.66001580403,
+          "ref_ns": 60744.024680851064
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": false,
+          "go_ns": 38354.644211774,
+          "ref_ns": 60581.45404255319
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 37176.758198340576,
+          "ref_ns": 59643.227234042555
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 40058.071513235875,
+        "q1": 39019.15833662584,
+        "q3": 40501.131766100356
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 61038.1914893617,
+        "q1": 60662.73936170213,
+        "q3": 61115.49638297872
       },
-      "ratio": 0
+      "ratio": 0.6562788073466687,
+      "verdict": "faster"
     },
     {
       "name": "TrapezoidND axis 1",
@@ -434,17 +1684,71 @@
       "reference": "scipy 1.18.1 integrate.trapezoid(g, dx=0.1, axis=1)",
       "parity": "exact",
       "allocs": 9,
+      "go_iters": 2647,
+      "ref_iters": 1344,
+      "rounds": [
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 39732.432942954285,
+          "ref_ns": 94604.19791666667
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": false,
+          "go_ns": 38470.07631280695,
+          "ref_ns": 94432.22991071429
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 38136.491122024934,
+          "ref_ns": 94182.35342261905
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": false,
+          "go_ns": 38703.28031734039,
+          "ref_ns": 94544.89136904762
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 38337.78806195693,
+          "ref_ns": 94656.18824404762
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": false,
+          "go_ns": 38690.18360408009,
+          "ref_ns": 94957.27976190476
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 38758.46883264073,
+          "ref_ns": 95661.30357142857
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 38690.18360408009,
+        "q1": 38403.93218738194,
+        "q3": 38730.87457499056
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 94604.19791666667,
+        "q1": 94488.56063988095,
+        "q3": 94806.73400297618
       },
-      "ratio": 0
+      "ratio": 0.40896899351296057,
+      "verdict": "faster"
     },
     {
       "name": "SimpsonND axis 1",
@@ -452,17 +1756,71 @@
       "reference": "scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=1)",
       "parity": "exact",
       "allocs": 9,
+      "go_iters": 2891,
+      "ref_iters": 902,
+      "rounds": [
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1435546875,
+          "go_first": true,
+          "go_ns": 37373.38602559668,
+          "ref_ns": 121851.30266075388
+        },
+        {
+          "load_before": 7.1435546875,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 38174.2621930128,
+          "ref_ns": 123759.42350332595
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 37891.94915254237,
+          "ref_ns": 124466.13968957872
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 37243.471117260466,
+          "ref_ns": 124345.29711751663
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 37213.13282601176,
+          "ref_ns": 123596.17516629712
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 38119.307160152195,
+          "ref_ns": 122605.82926829268
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 37522.20996195088,
+          "ref_ns": 127031.96563192905
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 37522.20996195088,
+        "q1": 37308.42857142857,
+        "q3": 38005.62815634729
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 123759.42350332595,
+        "q1": 123101.00221729491,
+        "q3": 124405.71840354768
       },
-      "ratio": 0
+      "ratio": 0.30318668994884657,
+      "verdict": "faster"
     },
     {
       "name": "SimpsonND axis 0",
@@ -470,17 +1828,71 @@
       "reference": "scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=0)",
       "parity": "exact",
       "allocs": 8,
+      "go_iters": 3911,
+      "ref_iters": 1179,
+      "rounds": [
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 26931.155714650984,
+          "ref_ns": 94039.475826972
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 26971.394783942727,
+          "ref_ns": 92628.81679389313
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 26960.389670161083,
+          "ref_ns": 92456.28413910093
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 27251.960112503195,
+          "ref_ns": 93266.39779474131
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 27366.583482485297,
+          "ref_ns": 92515.16115351993
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 27452.70825875735,
+          "ref_ns": 92396.24003392705
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 27798.804653541294,
+          "ref_ns": 95200.94741306192
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 27251.960112503195,
+        "q1": 26965.892227051903,
+        "q3": 27409.645870621323
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 92628.81679389313,
+        "q1": 92485.72264631043,
+        "q3": 93652.93681085666
       },
-      "ratio": 0
+      "ratio": 0.2942060695122673,
+      "verdict": "faster"
     },
     {
       "name": "CumulativeTrapezoidND axis 0",
@@ -488,17 +1900,71 @@
       "reference": "scipy 1.18.1 integrate.cumulative_trapezoid(g, dx=0.1, axis=0, initial=0)",
       "parity": "exact",
       "allocs": 9,
+      "go_iters": 1696,
+      "ref_iters": 285,
+      "rounds": [
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 88590.35966981133,
+          "ref_ns": 373557.6035087719
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 88227.44693396226,
+          "ref_ns": 373583.3333333333
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 84954.67275943396,
+          "ref_ns": 365275.5824561404
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 84637.0625,
+          "ref_ns": 366638.74035087717
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 85028.49882075471,
+          "ref_ns": 360598.09824561403
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": false,
+          "go_ns": 87219.70813679245,
+          "ref_ns": 357749.2701754386
+        },
+        {
+          "load_before": 7.1318359375,
+          "load_after": 7.1318359375,
+          "go_first": true,
+          "go_ns": 88008.59905660378,
+          "ref_ns": 369847.9543859649
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 87219.70813679245,
+        "q1": 84991.58579009434,
+        "q3": 88118.02299528301
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 366638.74035087717,
+        "q1": 362936.8403508772,
+        "q3": 371702.7789473684
       },
-      "ratio": 0
+      "ratio": 0.2378900496257495,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP Lotka RK45",
@@ -506,17 +1972,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5])",
       "parity": "tolerance",
       "allocs": 95,
+      "go_iters": 8712,
+      "ref_iters": 160,
+      "rounds": [
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": true,
+          "go_ns": 13994.930325987145,
+          "ref_ns": 1192158.59375
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": false,
+          "go_ns": 13980.56795224977,
+          "ref_ns": 1204818.49375
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": true,
+          "go_ns": 13986.503328741965,
+          "ref_ns": 1205247.65625
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": false,
+          "go_ns": 13757.140495867769,
+          "ref_ns": 1194764.0625
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": true,
+          "go_ns": 13813.973025711663,
+          "ref_ns": 1213390.8875
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": false,
+          "go_ns": 14152.64393939394,
+          "ref_ns": 1194576.04375
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": true,
+          "go_ns": 14171.98507805326,
+          "ref_ns": 1195968.75
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 13986.503328741965,
+        "q1": 13897.270488980717,
+        "q3": 14073.787132690542
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1195968.75,
+        "q1": 1194670.053125,
+        "q3": 1205033.075
       },
-      "ratio": 0
+      "ratio": 0.011694706344745183,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP Lotka RK23",
@@ -524,17 +2044,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23')",
       "parity": "tolerance",
       "allocs": 210,
+      "go_iters": 6400,
+      "ref_iters": 96,
+      "rounds": [
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": true,
+          "go_ns": 28562.3503125,
+          "ref_ns": 2040420.1458333333
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": false,
+          "go_ns": 28280.4753125,
+          "ref_ns": 1992565.96875
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": true,
+          "go_ns": 28218.5025,
+          "ref_ns": 1991047.75
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.880859375,
+          "go_first": false,
+          "go_ns": 28711.57546875,
+          "ref_ns": 2027057.2916666667
+        },
+        {
+          "load_before": 6.880859375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 28348.45703125,
+          "ref_ns": 2027210.9375
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 28623.58078125,
+          "ref_ns": 2008399.3020833333
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 28915.14984375,
+          "ref_ns": 2024121.09375
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 28562.3503125,
+        "q1": 28314.466171875,
+        "q3": 28667.578125
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2024121.09375,
+        "q1": 2000482.6354166665,
+        "q3": 2027134.1145833335
       },
-      "ratio": 0
+      "ratio": 0.014110988913012013,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP Lotka DOP853 tight",
@@ -542,17 +2116,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12)",
       "parity": "tolerance",
       "allocs": 277,
+      "go_iters": 1474,
+      "ref_iters": 14,
+      "rounds": [
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 75995.61872455903,
+          "ref_ns": 7278744
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 71997.8514246947,
+          "ref_ns": 7108288.642857143
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 72405.98168249661,
+          "ref_ns": 7154425.571428572
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 72594.95115332429,
+          "ref_ns": 7186726.214285715
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 71210.14246947083,
+          "ref_ns": 7182169.642857143
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 76120.44911804613,
+          "ref_ns": 7232711.357142857
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 75873.86906377204,
+          "ref_ns": 7200619
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 72594.95115332429,
+        "q1": 72201.91655359566,
+        "q3": 75934.74389416553
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 7186726.214285715,
+        "q1": 7168297.607142857,
+        "q3": 7216665.178571429
       },
-      "ratio": 0
+      "ratio": 0.010101254589192595,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP Lotka dense t_eval",
@@ -560,17 +2188,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True)",
       "parity": "tolerance",
       "allocs": 1228,
+      "go_iters": 2673,
+      "ref_iters": 92,
+      "rounds": [
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 41159.32472876917,
+          "ref_ns": 1620707.8804347827
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 41063.9416386083,
+          "ref_ns": 1677308.4239130435
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 44423.229330340444,
+          "ref_ns": 1688130.4347826086
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 41761.31687242798,
+          "ref_ns": 1653780.3369565217
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 43003.30452674897,
+          "ref_ns": 1671633.597826087
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": false,
+          "go_ns": 43895.76318742985,
+          "ref_ns": 1682188.858695652
+        },
+        {
+          "load_before": 6.64990234375,
+          "load_after": 6.64990234375,
+          "go_first": true,
+          "go_ns": 41914.82716049383,
+          "ref_ns": 1644168.9239130435
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 41914.82716049383,
+        "q1": 41460.32080059858,
+        "q3": 43449.53385708941
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1671633.597826087,
+        "q1": 1648974.6304347827,
+        "q3": 1679748.6413043477
       },
-      "ratio": 0
+      "ratio": 0.025074171286699965,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP Lotka event",
@@ -578,17 +2260,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5)",
       "parity": "tolerance",
       "allocs": 161,
+      "go_iters": 6423,
+      "ref_iters": 104,
+      "rounds": [
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 16739.672427214697,
+          "ref_ns": 1929902.25
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": false,
+          "go_ns": 17897.711349836525,
+          "ref_ns": 1901353.3653846155
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 16733.153043749026,
+          "ref_ns": 1884184.2884615385
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": false,
+          "go_ns": 16539.000467071462,
+          "ref_ns": 1915737.5865384615
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 16448.083761482172,
+          "ref_ns": 1990375.798076923
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": false,
+          "go_ns": 16591.39031605169,
+          "ref_ns": 1961555.6923076923
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 16854.85754320411,
+          "ref_ns": 1887895.0384615385
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 16733.153043749026,
+        "q1": 16565.195391561574,
+        "q3": 16797.264985209404
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1915737.5865384615,
+        "q1": 1894624.201923077,
+        "q3": 1945728.971153846
       },
-      "ratio": 0
+      "ratio": 0.008734574694013335,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP VdP1000 Radau",
@@ -596,17 +2332,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau')",
       "parity": "tolerance",
       "allocs": 350,
+      "go_iters": 793,
+      "ref_iters": 6,
+      "rounds": [
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 139651.16645649433,
+          "ref_ns": 28493111
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": false,
+          "go_ns": 138089.58511979823,
+          "ref_ns": 27586583.333333332
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 138007.7238335435,
+          "ref_ns": 27753729.166666668
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": false,
+          "go_ns": 135680.0655737705,
+          "ref_ns": 26949514
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 135441.46784363178,
+          "ref_ns": 27313104.166666668
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": false,
+          "go_ns": 136666.40353089533,
+          "ref_ns": 27327104.166666668
+        },
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.27734375,
+          "go_first": true,
+          "go_ns": 136183.0605296343,
+          "ref_ns": 27227611.166666668
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 136666.40353089533,
+        "q1": 135931.5630517024,
+        "q3": 138048.65447667087
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 27327104.166666668,
+        "q1": 27270357.666666668,
+        "q3": 27670156.25
       },
-      "ratio": 0
+      "ratio": 0.00500113011233732,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP VdP1000 Radau jac",
@@ -614,17 +2404,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau', jac)",
       "parity": "tolerance",
       "allocs": 345,
+      "go_iters": 851,
+      "ref_iters": 4,
+      "rounds": [
+        {
+          "load_before": 6.27734375,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 131644.7814336075,
+          "ref_ns": 25281593.75
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 131202.35957696827,
+          "ref_ns": 24928437.5
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 130638.90599294947,
+          "ref_ns": 25085145.75
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 132018.9482961222,
+          "ref_ns": 24710635.5
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 133015.91304347827,
+          "ref_ns": 25104468.75
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 131405.0634547591,
+          "ref_ns": 25030593.75
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 137099.53936545242,
+          "ref_ns": 25359875
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 131644.7814336075,
+        "q1": 131303.7115158637,
+        "q3": 132517.43066980023
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 25085145.75,
+        "q1": 24979515.625,
+        "q3": 25193031.25
       },
-      "ratio": 0
+      "ratio": 0.005247917741662215,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP VdP1000 BDF",
@@ -632,17 +2476,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF')",
       "parity": "tolerance",
       "allocs": 595,
+      "go_iters": 640,
+      "ref_iters": 6,
+      "rounds": [
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 175553.515625,
+          "ref_ns": 29214270.833333332
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 170592.9046875,
+          "ref_ns": 27937777.833333332
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 172285.546875,
+          "ref_ns": 28286798.666666668
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 172248.2421875,
+          "ref_ns": 28361694.5
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 172527.734375,
+          "ref_ns": 29352104.166666668
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 175138.8015625,
+          "ref_ns": 28484958.333333332
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 173432.6171875,
+          "ref_ns": 28755757
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 172527.734375,
+        "q1": 172266.89453125,
+        "q3": 174285.709375
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 28484958.333333332,
+        "q1": 28324246.583333336,
+        "q3": 28985013.916666664
       },
-      "ratio": 0
+      "ratio": 0.006056801360074543,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP VdP1000 BDF jac",
@@ -650,17 +2548,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF', jac)",
       "parity": "tolerance",
       "allocs": 586,
+      "go_iters": 659,
+      "ref_iters": 4,
+      "rounds": [
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 166357.42185128984,
+          "ref_ns": 25078343.75
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 162833.33383915023,
+          "ref_ns": 25005677.25
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": true,
+          "go_ns": 165662.6191198786,
+          "ref_ns": 25019822.75
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 6.2548828125,
+          "go_first": false,
+          "go_ns": 166898.39301972685,
+          "ref_ns": 25696958.5
+        },
+        {
+          "load_before": 6.2548828125,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 165199.8603945372,
+          "ref_ns": 25058677
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 164942.59028831564,
+          "ref_ns": 25235312.5
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 168324.2928679818,
+          "ref_ns": 25916552
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 165662.6191198786,
+        "q1": 165071.2253414264,
+        "q3": 166627.90743550833
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 25078343.75,
+        "q1": 25039249.875,
+        "q3": 25466135.5
       },
-      "ratio": 0
+      "ratio": 0.006605803827052119,
+      "verdict": "faster"
     },
     {
       "name": "SolveIVP VdP1000 LSODA",
@@ -668,17 +2620,71 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA')",
       "parity": "tolerance",
       "allocs": 608,
+      "go_iters": 858,
+      "ref_iters": 94,
+      "rounds": [
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 130839.84032634033,
+          "ref_ns": 2119186.170212766
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 131189.73426573427,
+          "ref_ns": 2151114.8085106383
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 129468.24009324009,
+          "ref_ns": 2078124.5531914893
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 129719.69696969698,
+          "ref_ns": 2088277.925531915
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 129050.16433566433,
+          "ref_ns": 2067661.7872340425
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 129929.39044289045,
+          "ref_ns": 2081029.7021276595
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 130990.23892773893,
+          "ref_ns": 2112875
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 129929.39044289045,
+        "q1": 129593.96853146853,
+        "q3": 130915.03962703963
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 2088277.925531915,
+        "q1": 2079577.1276595744,
+        "q3": 2116030.585106383
       },
-      "ratio": 0
+      "ratio": 0.062218437907298925,
+      "verdict": "faster"
     },
     {
       "name": "Odeint Robertson",
@@ -686,17 +2692,71 @@
       "reference": "scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12)",
       "parity": "tolerance",
       "allocs": 106,
+      "go_iters": 600,
+      "ref_iters": 79,
+      "rounds": [
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 187210.76333333334,
+          "ref_ns": 1374126.582278481
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 181067.43,
+          "ref_ns": 1358737.8607594937
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 181698.195,
+          "ref_ns": 1374318.5569620254
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 183553.95833333334,
+          "ref_ns": 1379943.5569620254
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 182735.07,
+          "ref_ns": 1379186.1898734176
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": false,
+          "go_ns": 181093.47333333333,
+          "ref_ns": 1369709.9113924052
+        },
+        {
+          "load_before": 5.994140625,
+          "load_after": 5.994140625,
+          "go_first": true,
+          "go_ns": 183194.93,
+          "ref_ns": 1418600.2151898735
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 182735.07,
+        "q1": 181395.83416666667,
+        "q3": 183374.44416666665
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 1374318.5569620254,
+        "q1": 1371918.2468354432,
+        "q3": 1379564.8734177216
       },
-      "ratio": 0
+      "ratio": 0.1329641290764069,
+      "verdict": "faster"
     },
     {
       "name": "Odeint Lotka 101 times",
@@ -704,17 +2764,71 @@
       "reference": "scipy 1.18.1 integrate.odeint(lotka, 101 times)",
       "parity": "tolerance",
       "allocs": 99,
+      "go_iters": 2101,
+      "ref_iters": 149,
+      "rounds": [
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 51904.76772965254,
+          "ref_ns": 678972.8724832215
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 52343.050928129465,
+          "ref_ns": 681082.77852349
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 52225.943836268445,
+          "ref_ns": 678252.2348993289
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 50786.37125178486,
+          "ref_ns": 694576.899328859
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 49962.874821513564,
+          "ref_ns": 651638.1409395973
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 52488.120894812,
+          "ref_ns": 653934.2818791947
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 51091.999524036175,
+          "ref_ns": 649943.2348993289
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 51904.76772965254,
+        "q1": 50939.18538791052,
+        "q3": 52284.497382198955
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 678252.2348993289,
+        "q1": 652786.211409396,
+        "q3": 680027.8255033557
       },
-      "ratio": 0
+      "ratio": 0.07652723435162233,
+      "verdict": "faster"
     },
     {
       "name": "ODESolution.Eval scalar",
@@ -722,17 +2836,71 @@
       "reference": "scipy 1.18.1 integrate.sol.sol(7.5)",
       "parity": "tolerance",
       "allocs": 1,
+      "go_iters": 6368002,
+      "ref_iters": 23681,
+      "rounds": [
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 17.51118985201324,
+          "ref_ns": 4524.127992905705
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 20.895492966239647,
+          "ref_ns": 4433.837633545881
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 17.978990898558134,
+          "ref_ns": 4345.306701575102
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 17.17813797797174,
+          "ref_ns": 4500.694987542755
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 17.168925198201887,
+          "ref_ns": 4370.9214982475405
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 17.00500675094009,
+          "ref_ns": 4427.582618977239
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 17.22072072213545,
+          "ref_ns": 4484.0413833875255
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 17.22072072213545,
+        "q1": 17.173531588086814,
+        "q3": 17.745090375285685
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 4433.837633545881,
+        "q1": 4399.25205861239,
+        "q3": 4492.36818546514
       },
-      "ratio": 0
+      "ratio": 0.0038839312905473928,
+      "verdict": "faster"
     },
     {
       "name": "ODESolution.EvalInto scalar",
@@ -740,17 +2908,71 @@
       "reference": "scipy 1.18.1 integrate.sol.sol(7.5)",
       "parity": "tolerance",
       "allocs": 0,
+      "go_iters": 12985527,
+      "ref_iters": 24757,
+      "rounds": [
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 8.542587451398777,
+          "ref_ns": 4441.82623096498
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 8.634029023234868,
+          "ref_ns": 4441.59566991154
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 8.912608398565572,
+          "ref_ns": 4375.866744759058
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 8.737166308306163,
+          "ref_ns": 4408.776628832249
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": true,
+          "go_ns": 8.386253172474248,
+          "ref_ns": 4356.663448721573
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.314453125,
+          "go_first": false,
+          "go_ns": 8.355744822678355,
+          "ref_ns": 4341.085349598094
+        },
+        {
+          "load_before": 6.314453125,
+          "load_after": 6.12890625,
+          "go_first": true,
+          "go_ns": 8.907070155874305,
+          "ref_ns": 4493.473239891748
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 8.634029023234868,
+        "q1": 8.464420311936513,
+        "q3": 8.822118232090233
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 4408.776628832249,
+        "q1": 4366.265096740315,
+        "q3": 4441.710950438261
       },
-      "ratio": 0
+      "ratio": 0.0019583729796539408,
+      "verdict": "faster"
     },
     {
       "name": "ODESolution.EvalArray 1001 points",
@@ -758,17 +2980,71 @@
       "reference": "scipy 1.18.1 integrate.sol.sol(t_array)",
       "parity": "tolerance",
       "allocs": 7,
+      "go_iters": 10602,
+      "ref_iters": 536,
+      "rounds": [
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": true,
+          "go_ns": 18887.175344274667,
+          "ref_ns": 330027.98507462686
+        },
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": false,
+          "go_ns": 18057.677796642143,
+          "ref_ns": 325062.5
+        },
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": true,
+          "go_ns": 19499.795698924732,
+          "ref_ns": 330464.2406716418
+        },
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": false,
+          "go_ns": 18417.96755329183,
+          "ref_ns": 329694.1063432836
+        },
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": true,
+          "go_ns": 16750.08253159781,
+          "ref_ns": 341882.5410447761
+        },
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": false,
+          "go_ns": 18647.609696283722,
+          "ref_ns": 354118.9365671642
+        },
+        {
+          "load_before": 6.12890625,
+          "load_after": 6.12890625,
+          "go_first": true,
+          "go_ns": 12897.81013016412,
+          "ref_ns": 324826.1026119403
+        }
+      ],
       "go": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 18417.96755329183,
+        "q1": 17403.880164119975,
+        "q3": 18767.392520279194
       },
       "ref": {
-        "median": 0,
-        "q1": 0,
-        "q3": 0
+        "median": 330027.98507462686,
+        "q1": 327378.3031716418,
+        "q3": 336173.39085820894
       },
-      "ratio": 0
+      "ratio": 0.05580729024881665,
+      "verdict": "faster"
     }
   ]
 }

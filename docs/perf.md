@@ -12,9 +12,17 @@ slower than SciPy (ratio <= 1); a row above 1 is an open defect.
 - Functions with no SciPy call to compare are named in
   [perf-exempt.md](perf-exempt.md) with the reason.
 - The table, with the allocation count of every case, is
-  [perf-table.md](perf-table.md), generated from [perf.json](perf.json). Its
-  timings are **deferred**: the host was at a 1-minute load of 10 to 24 when this
-  was written, so only the allocation counts are recorded (exact under any load).
+  [perf-table.md](perf-table.md), generated from [perf.json](perf.json) (amd64).
+  Its timings are **deferred**: no amd64 host has been idle yet, so only the
+  allocation counts are recorded (exact under any load).
+- **Timings** are in [perf-table-arm64.md](perf-table-arm64.md) (darwin/arm64,
+  16 CPUs, Go 1.27.4, one core, 2026-11-13): every one of the 42 rows is faster
+  than SciPy 1.18.1, with no row above ratio 1. The slowest ratios are
+  `Trapezoid` 1e5 (0.69), `TrapezoidND` axis 0 (0.66), `CumulativeTrapezoid`
+  (0.54) and `Romb` (0.53), where SciPy's compiled code is the competitor; the
+  `(libm)` rows, with no Python callback on the SciPy side, are 0.08 to 0.21, and
+  `Odeint` is 0.13 (Robertson) and 0.08 (Lotka, 101 times). The 1-minute load
+  over the rounds was 5.99 to 7.31 (gate 8), so the run is valid.
 - The previous table (own harness, host load 14 to 18) is kept as
   [perf-legacy.md](perf-legacy.md).
 
