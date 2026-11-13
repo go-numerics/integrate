@@ -214,8 +214,9 @@ most
 and amd64: the bounds leave room for the architectures that take other steps).
 The growth on the oscillator is ODEPACK's: SciPy's own `lsoda` reaches 2.1e3 on
 the same problem at rtol 1e-9. On the LSODA runs of the SciPy fixtures
-(`testdata/ode.json`) E stays within 5 times SciPy's own error, and 20
-tolerances at least, with `nfev` within 20 % of SciPy's. Between output times
+(`testdata/ode.json`) E stays within 20 times SciPy's own error (7 times on
+amd64's worst, the Van der Pol limit cycle at rtol 1e-9, whose error is a phase
+error), and 20 tolerances at least, with `nfev` within 20 % of SciPy's. Between output times
 `Odeint` interpolates with the Nordsieck polynomial (`intdy`) of the order used,
 to the accuracy of the method (`TestOdeintManyOutputs`).
 
