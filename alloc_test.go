@@ -151,6 +151,33 @@ func TestOdeintAllocs(t *testing.T) {
 	}
 }
 
+// solveIVPLSODAWant: the allocations of SolveIVP with LSODA on the Van der Pol
+// problem mu = 1000 (727 steps on arm64): the solver's state and the growth of
+// the two lists, the states themselves coming out of chunks of the arena of
+// runIVP (they were 764, one per step). Exact where measured, a bound a
+// per-step allocation would break elsewhere.
+var solveIVPLSODAWant = map[string]float64{"amd64": 38, "arm64": 38}
+
+func TestSolveIVPLSODAAllocs(t *testing.T) {
+	if raceOn {
+		t.Skip("the race detector changes allocation counts")
+	}
+	call := func() {
+		if _, err := SolveIVP(vdpF(1000), [2]float64{0, 3000}, []float64{2, 0}, &IVPOptions{Method: LSODA}); err != nil {
+			panic(err)
+		}
+	}
+	call()
+	a := testing.AllocsPerRun(10, call)
+	if want, ok := solveIVPLSODAWant[runtime.GOARCH]; ok {
+		if a != want {
+			t.Errorf("%v allocations per call on %s, want exactly %v", a, runtime.GOARCH, want)
+		}
+	} else if a > 100 {
+		t.Errorf("%v allocations per call, want at most 100", a)
+	}
+}
+
 // TestDenseReusedBitIdentical: the interpolant a solver refills evaluates to the
 // same bits as a fresh one, step after step (stale coefficients, a changed order
 // or method), and refilling it leaves the fresh copies taken earlier untouched.

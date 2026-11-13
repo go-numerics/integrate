@@ -16,18 +16,17 @@ slower than SciPy (ratio <= 1); a row above 1 is an open defect.
   Its timings are **deferred**: no amd64 host has been idle yet, so only the
   allocation counts are recorded (exact under any load).
 - **Timings** are in [perf-table-arm64.md](perf-table-arm64.md) (darwin/arm64,
-  16 CPUs, Go 1.27.4, one core, 2026-11-13): every one of the 42 rows is faster
-  than SciPy 1.18.1, with no row above ratio 1. The slowest ratios are
-  `Trapezoid` 1e5 (0.69), `TrapezoidND` axis 0 (0.66), `CumulativeTrapezoid`
-  (0.54) and `Romb` (0.53), where SciPy's compiled code is the competitor; the
-  `(libm)` rows, with no Python callback on the SciPy side, are 0.08 to 0.21, and
-  `Odeint` is 0.13 (Robertson) and 0.08 (Lotka, 101 times). The 1-minute load
-  over the rounds was 5.99 to 7.31 (gate 8), so the run is valid.
-  **Three rows are stale:** `SolveIVP` LSODA and `Odeint` (Robertson, Lotka)
-  carry the timings of the Runge–Kutta/BDF switch that the port of ODEPACK's
-  lsoda replaced (docs/design.md). Their re-measurement is **deferred**: the
-  1-minute load was 14 to 25 when the port was made (gate 8). Their allocation
-  counts are current, and all 42 allocation counts of this file are exact.
+  16 CPUs, Go 1.27.4, one core, 2026-11-13, after the port of ODEPACK's lsoda,
+  docs/design.md): every one of the 42 rows is faster than SciPy 1.18.1, with no
+  row above ratio 1. The slowest ratios are `Trapezoid` 1e5 (0.71),
+  `TrapezoidND` axis 0 (0.63), `CumulativeTrapezoid` (0.58) and `Romb` (0.57),
+  where SciPy's compiled code is the competitor; the `(libm)` rows, with no
+  Python callback on the SciPy side, are 0.08 to 0.21. `SolveIVP` LSODA is 0.07
+  and `Odeint` 0.12 (Robertson) and 0.12 (Lotka, 101 times); the Adams/BDF port
+  runs more steps than the Runge–Kutta/BDF switch it replaced (those two rows
+  were 0.06, 0.13 and 0.08), at the same calls of the right-hand side as
+  SciPy's. The 1-minute load over the rounds was 5.01 to 6.73 (gate 8), so the
+  run is valid.
 - The previous table (own harness, host load 14 to 18) is kept as
   [perf-legacy.md](perf-legacy.md).
 
@@ -107,6 +106,8 @@ problem), and a finite-difference Jacobian no longer allocates its work vectors
 (`BDF` 798 to 595, `LSODA` 781 to 608). The ODE rows still allocate what they
 store (the state at every step or output time): with ODEPACK's lsoda `Odeint`
 allocates 44 (Robertson) and 68 (Lotka) times per call, no longer 106 and 99,
-interpolating in place, and `SolveIVP` LSODA 764, one per accepted step (727
-steps, as SciPy's). 32-bit lanes are not part of the
+interpolating in place. The stored states of `SolveIVP` come out of chunks of
+4096 floats (a handful of allocations per call, not one per step): `SolveIVP`
+LSODA 37, was 764 with one state allocated per accepted step (727 steps), BDF
+60 and 62, Radau 63 and 65, RK45 38. 32-bit lanes are not part of the
 `perf` job; a count that differed there would be recorded per `GOARCH`.
