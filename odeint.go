@@ -34,10 +34,10 @@ type OdeintInfo struct {
 	// HU is the step size last used, TCur the time reached.
 	HU, TCur []float64
 	// NST, NFE and NJE are the cumulative numbers of steps, right-hand side
-	// evaluations and Jacobian evaluations.
+	// evaluations (every call, those of finite-difference Jacobians included)
+	// and Jacobian evaluations.
 	NST, NFE, NJE []int
-	// MUsed is the method of the last step: 1 non-stiff (Runge–Kutta),
-	// 2 stiff (BDF).
+	// MUsed is the method of the last step: 1 non-stiff (Adams), 2 stiff (BDF).
 	MUsed []int
 	// Message describes the outcome.
 	Message string
@@ -45,10 +45,15 @@ type OdeintInfo struct {
 
 // Odeint integrates dy/dt = f(t, y) from t[0] and returns y at every time of
 // t (which must be monotonic) as a len(t)×n ndarray whose first row is y0.
-// It is SciPy's odeint(func, y0, t, Dfun=...) over the LSODA-style switching
-// method; SciPy's func(y, t) takes the state first, here f(t, y, dydt) takes
-// time first, as with odeint(..., tfirst=True). On failure the rows not
-// reached are NaN and the error wraps ErrExcessWork or ErrStepTooSmall.
+// It is SciPy's odeint(func, y0, t, Dfun=...), ODEPACK's lsoda (the LSODA
+// method of SolveIVP, driven to each output time and interpolated there);
+// SciPy's func(y, t) takes the state first, here f(t, y, dydt) takes time
+// first, as with odeint(..., tfirst=True). On failure the rows not reached are
+// NaN and the error wraps ErrExcessWork (more than MxStep steps between two
+// output times), ErrStepTooSmall (repeated error test or corrector failures, or
+// a non-finite state) or ErrODEInput (illegal input: output times closer than
+// the precision of t, a zero error weight, a tolerance below the machine
+// precision).
 func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray.Array, *OdeintInfo, error) {
 	var o OdeintOptions
 	if opts != nil {
@@ -97,43 +102,34 @@ func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray
 	if err != nil {
 		return nil, nil, err
 	}
-	sw := newSwitching(core)
-	var dense denseOutput
-	denseValid := false
-	stepsSince := 0
-	lastH := 0.0
+	sv := newLsoda(core)
+	sv.mxstep = mxstep
 	for k := 1; k < len(t); k++ {
-		tk := t[k]
-		for core.direction*(tk-core.t) > 0 {
-			if stepsSince >= mxstep {
-				info.Message = fmt.Sprintf("Excess work done on this call (MxStep = %d).", mxstep)
-				return out(), info, fmt.Errorf("%w (MxStep = %d at t = %g)", ErrExcessWork, mxstep, core.t)
+		row := data[k*n : (k+1)*n]
+		if n > 0 {
+			// ODEPACK's lsoda with itask = 1: it steps past t[k] and
+			// interpolates there, from the Nordsieck array (intdy).
+			if _, istate := sv.call(row, t[k], 1); istate < 0 {
+				for i := range row {
+					row[i] = math.NaN()
+				}
+				info.Message = lsodaMessages[istate]
+				switch istate {
+				case -1:
+					info.Message = fmt.Sprintf("Excess work done on this call (MxStep = %d).", mxstep)
+					return out(), info, fmt.Errorf("%w (MxStep = %d at t = %g)", ErrExcessWork, mxstep, sv.tn)
+				case -4, -5, -9:
+					return out(), info, fmt.Errorf("%w at t = %g: %s", ErrStepTooSmall, sv.tn, info.Message)
+				}
+				return out(), info, fmt.Errorf("%w: %s", ErrODEInput, info.Message)
 			}
-			tPrev := core.t
-			if ok, msg := core.step(sw); !ok {
-				info.Message = msg
-				return out(), info, fmt.Errorf("%w at t = %g", ErrStepTooSmall, core.t)
-			}
-			lastH = core.t - tPrev
-			stepsSince++
-			denseValid = false
 		}
-		if !denseValid {
-			dense = core.denseReused(sw)
-			denseValid = true
-		}
-		dense.eval(tk, data[k*n:(k+1)*n])
-		stepsSince = 0
-		info.HU = append(info.HU, lastH)
-		info.TCur = append(info.TCur, core.t)
-		info.NST = append(info.NST, core.nsteps)
-		info.NFE = append(info.NFE, core.nfev)
-		info.NJE = append(info.NJE, core.njev)
-		mused := 1
-		if sw.lastStiff {
-			mused = 2
-		}
-		info.MUsed = append(info.MUsed, mused)
+		info.HU = append(info.HU, sv.hu)
+		info.TCur = append(info.TCur, sv.tn)
+		info.NST = append(info.NST, sv.nst)
+		info.NFE = append(info.NFE, sv.nfe)
+		info.NJE = append(info.NJE, sv.nje)
+		info.MUsed = append(info.MUsed, sv.mused)
 	}
 	return out(), info, nil
 }

@@ -39,18 +39,18 @@ ns/call, median [first quartile, third quartile]; ratio = Go / reference.
 | SimpsonND axis 1 | `SimpsonND` | scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=1) | — | — | — | deferred | exact | 9 |
 | SimpsonND axis 0 | `SimpsonND` | scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=0) | — | — | — | deferred | exact | 8 |
 | CumulativeTrapezoidND axis 0 | `CumulativeTrapezoidND` | scipy 1.18.1 integrate.cumulative_trapezoid(g, dx=0.1, axis=0, initial=0) | — | — | — | deferred | exact | 9 |
-| SolveIVP Lotka RK45 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5]) | — | — | — | deferred | tolerance | 95 |
-| SolveIVP Lotka RK23 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23') | — | — | — | deferred | tolerance | 210 |
-| SolveIVP Lotka DOP853 tight | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12) | — | — | — | deferred | tolerance | 277 |
-| SolveIVP Lotka dense t_eval | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True) | — | — | — | deferred | tolerance | 1228 |
-| SolveIVP Lotka event | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5) | — | — | — | deferred | tolerance | 161 |
+| SolveIVP Lotka RK45 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5]) | — | — | — | deferred | tolerance | 94 |
+| SolveIVP Lotka RK23 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23') | — | — | — | deferred | tolerance | 209 |
+| SolveIVP Lotka DOP853 tight | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12) | — | — | — | deferred | tolerance | 276 |
+| SolveIVP Lotka dense t_eval | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True) | — | — | — | deferred | tolerance | 1227 |
+| SolveIVP Lotka event | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5) | — | — | — | deferred | tolerance | 160 |
 | SolveIVP VdP1000 Radau | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau') | — | — | — | deferred | tolerance | 353 |
 | SolveIVP VdP1000 Radau jac | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau', jac) | — | — | — | deferred | tolerance | 349 |
 | SolveIVP VdP1000 BDF | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF') | — | — | — | deferred | tolerance | 596 |
 | SolveIVP VdP1000 BDF jac | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF', jac) | — | — | — | deferred | tolerance | 586 |
-| SolveIVP VdP1000 LSODA | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA') | — | — | — | deferred | tolerance | 608 |
-| Odeint Robertson | `Odeint` | scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12) | — | — | — | deferred | tolerance | 106 |
-| Odeint Lotka 101 times | `Odeint` | scipy 1.18.1 integrate.odeint(lotka, 101 times) | — | — | — | deferred | tolerance | 99 |
+| SolveIVP VdP1000 LSODA | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA') | — | — | — | deferred | tolerance | 764 |
+| Odeint Robertson | `Odeint` | scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12) | — | — | — | deferred | tolerance | 44 |
+| Odeint Lotka 101 times | `Odeint` | scipy 1.18.1 integrate.odeint(lotka, 101 times) | — | — | — | deferred | tolerance | 68 |
 | ODESolution.Eval scalar | `ODESolution.Eval` | scipy 1.18.1 integrate.sol.sol(7.5) | — | — | — | deferred | tolerance | 1 |
 | ODESolution.EvalInto scalar | `ODESolution.EvalInto` | scipy 1.18.1 integrate.sol.sol(7.5) | — | — | — | deferred | tolerance | 0 |
 | ODESolution.EvalArray 1001 points | `ODESolution.EvalArray` | scipy 1.18.1 integrate.sol.sol(t_array) | — | — | — | deferred | tolerance | 7 |

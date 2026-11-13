@@ -23,6 +23,11 @@ slower than SciPy (ratio <= 1); a row above 1 is an open defect.
   `(libm)` rows, with no Python callback on the SciPy side, are 0.08 to 0.21, and
   `Odeint` is 0.13 (Robertson) and 0.08 (Lotka, 101 times). The 1-minute load
   over the rounds was 5.99 to 7.31 (gate 8), so the run is valid.
+  **Three rows are stale:** `SolveIVP` LSODA and `Odeint` (Robertson, Lotka)
+  carry the timings of the Runge–Kutta/BDF switch that the port of ODEPACK's
+  lsoda replaced (docs/design.md). Their re-measurement is **deferred**: the
+  1-minute load was 14 to 25 when the port was made (gate 8). Their allocation
+  counts are current, and all 42 allocation counts of this file are exact.
 - The previous table (own harness, host load 14 to 18) is kept as
   [perf-legacy.md](perf-legacy.md).
 
@@ -56,10 +61,14 @@ an exemption.
   Jacobian. Within 2 % for Radau (285 steps against 283 without a Jacobian,
   282 against 285 with one: the stiff Newton iteration is sensitive to the
   rounding of the LU solves) and within 1 % for BDF without a Jacobian (one
-  call). By design different, so pinned in the test (Go, SciPy): `SolveIVP`
-  LSODA 2594 against 1803 calls, `Odeint` Robertson 2222 against 1683 and
-  Lotka 1880 against 1243: this package's stiff/non-stiff switching is not
-  ODEPACK's (docs/design.md). Those three ratios carry that difference.
+  call). Equal too for `SolveIVP` LSODA (1803 calls) and `Odeint` Robertson
+  (1683) and Lotka (1243) on arm64: LSODA is ODEPACK's lsoda, ported from
+  SciPy's `lsoda.c` (docs/design.md), where it was 2594, 2222 and 1880 calls
+  with the Runge–Kutta/BDF switch the port replaced and pinned as different by
+  design. Their step selection hinges on the last bit, so the equality is that
+  of this machine's compiler (the C source itself takes 647 or 682 evaluations
+  on another problem with and without fused multiply-adds), and no row is
+  pinned.
 - **Callbacks.** SciPy calls its integrand from Python. The rows say what they
   do about it:
   - `Quad` rows named `(libm)` integrate a function of the C library (`log`,
@@ -96,5 +105,8 @@ and a triple quadrature went from 2 780 allocations to 2), a Radau step no
 longer allocates its interpolant (1 395 allocations to 350 on the Van der Pol
 problem), and a finite-difference Jacobian no longer allocates its work vectors
 (`BDF` 798 to 595, `LSODA` 781 to 608). The ODE rows still allocate what they
-store (the state at every step or output time). 32-bit lanes are not part of the
+store (the state at every step or output time): with ODEPACK's lsoda `Odeint`
+allocates 44 (Robertson) and 68 (Lotka) times per call, no longer 106 and 99,
+interpolating in place, and `SolveIVP` LSODA 764, one per accepted step (727
+steps, as SciPy's). 32-bit lanes are not part of the
 `perf` job; a count that differed there would be recorded per `GOARCH`.

@@ -29,12 +29,12 @@
 //
 //   - SolveIVP with RK45 (Dormand–Prince), RK23 (Bogacki–Shampine), DOP853
 //     (Hairer), Radau (implicit Radau IIA, order 5), BDF (variable order 1–5,
-//     NDF variant) and LSODA (automatic switching between Runge–Kutta and
-//     BDF). Events with direction and terminal counts, output at chosen times
-//     (TEval), continuous dense output, scalar or per-component tolerances,
-//     MaxStep, FirstStep and optional Jacobians (finite differences
-//     otherwise).
-//   - Odeint: SciPy's classic interface over the switching method.
+//     NDF variant) and LSODA (ODEPACK's lsoda: variable-order Adams–Moulton
+//     and BDF with automatic switching). Events with direction and terminal
+//     counts, output at chosen times (TEval), continuous dense output, scalar
+//     or per-component tolerances, MaxStep, FirstStep and optional Jacobians
+//     (finite differences otherwise).
+//   - Odeint: SciPy's classic interface over the same LSODA.
 //
 // Right-hand sides are func(t float64, y, dydt []float64), writing the
 // derivative into dydt so that a step allocates nothing; SciPy's

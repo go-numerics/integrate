@@ -120,17 +120,19 @@ func odeintCall(robertson bool) func() {
 }
 
 // odeintWant: the allocations of one Odeint call (the output array, the info
-// lists and the solver's own state, no interpolant per output time), exact on
-// amd64 and arm64 (the two measured: 146 and 829 before the interpolant was
-// reused). Another architecture steps differently where the compiler fuses
-// multiply-adds, so it is held to a bound a per-time interpolant would break.
+// lists and the solver's own state; none per output time, the interpolation
+// being intdy on the Nordsieck array), exact on amd64 and arm64 (the two
+// measured; 146 and 829 before the interpolant was reused, 106 and 99 with
+// the Runge-Kutta/BDF switch). Another architecture steps differently where
+// the compiler fuses multiply-adds, so it is held to a bound a per-time
+// allocation would break.
 var odeintWant = map[string][2]float64{ // GOARCH: {Robertson, Lotka 101 times}
-	"amd64": {106, 99},
-	"arm64": {106, 99},
+	"amd64": {44, 68},
+	"arm64": {44, 68},
 }
 
-// TestOdeintAllocs: Odeint refills one interpolant per solver rather than
-// allocating a fresh one (and copies of its coefficients) per output time.
+// TestOdeintAllocs: Odeint interpolates in place, with no allocation per
+// output time.
 func TestOdeintAllocs(t *testing.T) {
 	if raceOn {
 		t.Skip("the race detector changes allocation counts")

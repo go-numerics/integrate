@@ -505,7 +505,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5])",
       "parity": "tolerance",
-      "allocs": 95,
+      "allocs": 94,
       "go": {
         "median": 0,
         "q1": 0,
@@ -523,7 +523,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23')",
       "parity": "tolerance",
-      "allocs": 210,
+      "allocs": 209,
       "go": {
         "median": 0,
         "q1": 0,
@@ -541,7 +541,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12)",
       "parity": "tolerance",
-      "allocs": 277,
+      "allocs": 276,
       "go": {
         "median": 0,
         "q1": 0,
@@ -559,7 +559,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True)",
       "parity": "tolerance",
-      "allocs": 1228,
+      "allocs": 1227,
       "go": {
         "median": 0,
         "q1": 0,
@@ -577,7 +577,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5)",
       "parity": "tolerance",
-      "allocs": 161,
+      "allocs": 160,
       "go": {
         "median": 0,
         "q1": 0,
@@ -667,7 +667,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA')",
       "parity": "tolerance",
-      "allocs": 608,
+      "allocs": 764,
       "go": {
         "median": 0,
         "q1": 0,
@@ -685,7 +685,7 @@
       "func": "Odeint",
       "reference": "scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12)",
       "parity": "tolerance",
-      "allocs": 106,
+      "allocs": 44,
       "go": {
         "median": 0,
         "q1": 0,
@@ -703,7 +703,7 @@
       "func": "Odeint",
       "reference": "scipy 1.18.1 integrate.odeint(lotka, 101 times)",
       "parity": "tolerance",
-      "allocs": 99,
+      "allocs": 68,
       "go": {
         "median": 0,
         "q1": 0,

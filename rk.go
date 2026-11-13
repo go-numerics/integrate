@@ -24,10 +24,6 @@ type rkTableau struct {
 	B                        []float64
 	E                        []float64   // error weights (nStages+1), RK23/RK45
 	P                        [][]float64 // dense output (nStages+1 × k)
-	// stiffBound is the stability boundary used by Hairer's stiffness test
-	// (3.25 for DOPRI5, 6.1 for DOP853), 0 when the last internal stage is
-	// not at c = 1 and the test does not apply.
-	stiffBound float64
 }
 
 // Bogacki–Shampine 3(2).
@@ -68,13 +64,11 @@ var tabRK45 = &rkTableau{
 		{0, -282668133.0 / 205662961, 2019193451.0 / 616988883, -1453857185.0 / 822651844},
 		{0, 40617522.0 / 29380423, -110615467.0 / 29380423, 69997945.0 / 29380423},
 	},
-	stiffBound: 3.25,
 }
 
 var tabDOP853 = &rkTableau{
 	order: 8, errOrder: 7, nStages: dop853NStages,
 	C: dop853C[:dop853NStages], A: dop853A[:dop853NStages], B: dop853B,
-	stiffBound: 6.1,
 }
 
 // rkSolver integrates with an explicit embedded pair.
@@ -93,17 +87,12 @@ type rkSolver struct {
 	yNew      []float64
 	fNew      []float64
 	yTmp      []float64
-	yStiff    []float64 // argument of the last internal stage (c = 1)
 	scale     []float64
 	errv      []float64
-	// hLambda is Hairer's stiffness indicator |h|·‖f(y₁)-f(ỹ)‖/‖y₁-ỹ‖ of
-	// the last accepted step, for the LSODA-style switch.
-	hLambda float64
 }
 
-// newRK builds an explicit solver. f0, if non-nil, is f(t0, y0) already
-// evaluated and h0 the first step (the LSODA-style switch hands both over).
-func newRK(core *odeCore, m Method, f0 []float64, h0 float64) *rkSolver {
+// newRK builds an explicit solver and evaluates f(t0, y0).
+func newRK(core *odeCore, m Method) *rkSolver {
 	tab := tabRK45
 	switch m {
 	case RK23:
@@ -114,12 +103,7 @@ func newRK(core *odeCore, m Method, f0 []float64, h0 float64) *rkSolver {
 	n := core.n
 	s := &rkSolver{odeCore: core, tab: tab, dop: m == DOP853}
 	s.f = make([]float64, n)
-	if f0 != nil {
-		copy(s.f, f0)
-	} else {
-		core.eval(core.t, core.y, s.f)
-	}
-	s.hAbs = h0
+	core.eval(core.t, core.y, s.f)
 	rows := tab.nStages + 1
 	if s.dop {
 		rows = dop853NStagesExtended
@@ -132,13 +116,10 @@ func newRK(core *odeCore, m Method, f0 []float64, h0 float64) *rkSolver {
 	s.yNew = make([]float64, n)
 	s.fNew = make([]float64, n)
 	s.yTmp = make([]float64, n)
-	s.yStiff = make([]float64, n)
 	s.scale = make([]float64, n)
 	s.errv = make([]float64, n)
 	s.errExp = -1 / float64(tab.errOrder+1)
-	if f0 == nil {
-		s.hAbs = core.initialStep(s.f, float64(tab.errOrder))
-	}
+	s.hAbs = core.initialStep(s.f, float64(tab.errOrder))
 	return s
 }
 
@@ -148,7 +129,6 @@ func (s *rkSolver) rkStep(t, h float64) {
 	K := s.K
 	n := s.n
 	copy(K[0], s.f)
-	last := tab.nStages - 1
 	for st := 1; st < tab.nStages; st++ {
 		a := tab.A[st]
 		for i := 0; i < n; i++ {
@@ -157,9 +137,6 @@ func (s *rkSolver) rkStep(t, h float64) {
 				dy += K[j][i] * a[j]
 			}
 			s.yTmp[i] = s.y[i] + dy*h
-		}
-		if st == last {
-			copy(s.yStiff, s.yTmp)
 		}
 		s.eval(t+tab.C[st]*h, s.yTmp, K[st])
 	}
@@ -247,7 +224,6 @@ func (s *rkSolver) stepImpl() (bool, string) {
 			}
 			hAbs *= factor
 			s.hPrevious = h
-			s.stiffness(h)
 			s.yOld, s.y, s.yNew = s.y, s.yNew, s.yOld
 			s.f, s.fNew = s.fNew, s.f
 			s.t = tNew
@@ -256,27 +232,6 @@ func (s *rkSolver) stepImpl() (bool, string) {
 		}
 		hAbs *= pyMax(rkMinFactor, rkSafety*math.Pow(errNorm, s.errExp))
 		rejected = true
-	}
-}
-
-// stiffness computes Hairer's indicator hλ ≈ |h|·‖f(y₁) - f(ỹ)‖/‖y₁ - ỹ‖,
-// where ỹ is the argument of the last internal stage (c = 1): an estimate of
-// |h| times the dominant eigenvalue, compared with the stability boundary.
-func (s *rkSolver) stiffness(h float64) {
-	if s.tab.stiffBound == 0 {
-		return
-	}
-	num, den := 0.0, 0.0
-	last := s.K[s.tab.nStages-1]
-	for i := 0; i < s.n; i++ {
-		d := s.fNew[i] - last[i]
-		num += d * d
-		e := s.yNew[i] - s.yStiff[i]
-		den += e * e
-	}
-	s.hLambda = 0
-	if den > 0 {
-		s.hLambda = math.Abs(h) * math.Sqrt(num/den)
 	}
 }
 

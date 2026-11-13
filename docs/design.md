@@ -135,31 +135,90 @@ quasi-constant step size implementation of SciPy's `bdf.py`: a table of
 backward differences rescaled by `change_D` whenever the step changes, order
 selection after order+1 equal steps, at most 4 Newton iterations.
 
-### LSODA-style switching (`LSODA`, `Odeint`)
+### LSODA (`LSODA`, `Odeint`): ODEPACK's lsoda
 
-ODEPACK's LSODA (Petzold, *SIAM J. Sci. Stat. Comput.* 4 (1983)) pairs Adams
-methods with BDF and switches by comparing the step sizes each would take.
-This package does not port it. Its `LSODA` pairs the explicit Dormand–Prince
-methods (RK45, or DOP853 when the smallest `rtol` is below 1e-6) with the BDF
-above:
+A port of ODEPACK's LSODA (Hindmarsh, *ODEPACK, A Systematized Collection of
+ODE Solvers*, IMACS Trans. Sci. Comput. 1 (1983); Petzold, *SIAM J. Sci. Stat.
+Comput.* 4 (1983) 136–148) as SciPy 1.18.1 ships it: `scipy/integrate/src/lsoda.c`,
+the C translation of `lsoda.f`, `stoda.f`, `cfode.f`, `prja.f`, `solsy.f`,
+`intdy.f`, `ewset.f`, `vmnorm.f` and `fnorm.f`. `SolveIVP` drives it as
+`_ivp/lsoda.py` does (one step per call, `itask = 5`, not past `t_bound`, the
+dense output the Nordsieck polynomial of the step) and `Odeint` as
+`_odepackmodule.c` does (`itask = 1`: step past each output time and
+interpolate with `intdy`). It replaces the Runge–Kutta/BDF switch this package
+had before (Hairer's stiffness detector and a spectral radius estimate), which
+nothing else used and which is gone, with the hooks `rk.go` and `bdf.go` had for
+it.
 
-* non-stiff → stiff: Hairer's stiffness detector (*Solving ODEs II*, IV.2;
-  the test inside dopri5/dop853): after each accepted step
-  hλ ≈ |h|·‖f(y₁) − f(ỹ)‖ / ‖y₁ − ỹ‖ (ỹ the argument of the last internal
-  stage, also at t + h) estimates |h| times the dominant eigenvalue; when it
-  exceeds the stability boundary (3.25 for RK45, 6.1 for DOP853) on 15 steps
-  without 6 consecutive steps below, the step is limited by stability, not
-  accuracy, and BDF takes over with the current step size;
-* stiff → non-stiff: every 5 BDF steps the spectral radius ρ of the Jacobian
-  BDF holds is estimated by power iteration; when |h|·ρ < 1 on two
-  consecutive checks, the explicit method would be stable at BDF's step size
-  and takes over.
+* Variable-order Adams–Moulton (orders 1–12) and BDF (orders 1–5) on a Nordsieck
+  history, the coefficients of `cfode`, a corrector by functional iteration
+  (Adams) or the chord method (BDF), `maxcor = 3`.
+* The method switch: every 20 steps (`icount`) the step size each method could
+  have taken is computed (`dsm`, `cm1`, `cm2`, the Lipschitz estimate `pdest`
+  and `pdlast` for Adams, the norm `pdnorm` of the Jacobian for BDF) and BDF
+  takes over when it wins by `ratio = 5`, Adams when BDF's step is not larger
+  than 5/`ratio` = 1 times Adams's.
+* The error weights `1/(rtol|y| + atol)` and the weighted max-norms `vmnorm` and
+  `fnorm` of ODEPACK; the Jacobian is refreshed when `h·el₀` moved by more than
+  `ccmax = 0.3`, every `msbp = 20` steps, or when the corrector fails with an old
+  one; `prja`'s forward difference increments `max(√eps|y_j|, r₀/ewt_j)`.
+* The first step `h₀⁻² = 1/(tol·w₀²) + tol·‖f‖²`, the order and step selection of
+  `stoda` (rates `rhup`, `rhsm`, `rhdn`, the 10 % rule, `rmax`), and its
+  recoveries after 2, 3 and 10 failed error tests and 10 failed corrections.
 
-This keeps the property that matters to an `odeint` user — a stiff problem is
-not integrated with a stability-limited explicit method, a non-stiff one not
-with BDF — but its counts differ from ODEPACK's: on the stiff fixtures it
-uses 1.2–2.2× the right-hand-side evaluations of ODEPACK (Jacobian columns included on both sides). `Odeint` reports the method of the last
-step in `MUsed` (1 explicit, 2 BDF) with ODEPACK's meaning.
+The port agrees with `lsoda.c` step for step. Run on the harmonic oscillator at
+rtol 1e-6, the Go integrator (amd64, so without fused multiply-adds) and
+`lsoda.c` compiled with them off take the same 113 first steps to the last bit
+and the same 682 evaluations in all. ODEPACK's step selection hinges on the last
+bit (its error estimates are differences of nearly equal numbers): `lsoda.c`
+itself takes 647 evaluations with fused multiply-adds and 682 without. So the
+evaluation counts are SciPy's up to what the compiler's floating-point
+contraction decides. On the three cases of the performance table (`SolveIVP`
+LSODA on the Van der Pol problem μ = 1000, `Odeint` on Robertson and on
+Lotka–Volterra at 101 times) they are equal on arm64 (1803, 1683 and 1243 calls
+of the right-hand side, against 2594, 2222 and 1880 before), and on the other
+fixtures within 20 %.
+
+What is not ported, because the API reaches none of it: banded Jacobians (`jt`
+4 and 5; the API has no bandwidths), `itask` 2, 3 and 4, `istate` 3, `ixpr` and
+`mxhnil` (printing), `mxordn` and `mxords` (fixed at 12 and 5), and the
+workspace-size bookkeeping. `hmin` is 0 as in SciPy, where `lsoda.c` reads
+`rwork[6]` into a local and never stores it: `min_step` has no effect there
+either. Two guards are not ODEPACK's: a step that leaves a non-finite state is
+a failure (its norms, written with C's `fmax`, do not see a NaN), and
+`SolveIVP` stops when `h` has underflowed to 0 (ODEPACK has no floor on `h` and,
+called one step at a time, would not stop). Nothing else changes ODEPACK's
+behaviour.
+
+`Odeint` returns ODEPACK's `infodict`: `HU`, `TCur`, `NST`, `NFE` (every call of
+the right-hand side, those of finite-difference Jacobians included), `NJE` and
+`MUsed` (1 Adams, 2 BDF). `Solution.NFev` of an LSODA solution counts every call
+too, as SciPy's does, `NFevJac` is 0, and `NJev` = `NLU`.
+
+#### Accuracy contract
+
+LSODA controls the local error of each step, not the global error, so the
+contract is stated in tolerance units. Against a reference solution computed in
+300-bit arithmetic (`math/big`; `TestLSODAAccuracyContract`), the global error
+`E = max_i |y_i − ref_i| / (atol + rtol·|ref_i|)` at the end of the span is at
+most
+
+| problem | tolerances | bound on E |
+|---|---|---|
+| `y′ = −y/2` on [0, 10] | rtol 1e-6, atol 1e-9 and rtol 1e-9, atol 1e-12 | 20 |
+| harmonic oscillator, 5 periods | rtol 1e-6, atol 1e-9 | 1e4 |
+| harmonic oscillator, 5 periods | rtol 1e-9, atol 1e-12 | 2e4 |
+| `y′ = −1000(y − cos t)`, with and without the Jacobian | rtol 1e-6, atol 1e-9 | 20 |
+
+(measured 1.0 and 0.01; 1.7e3 to 4.7e3; 4.8e3 to 5.5e3; 1e-3 to 2e-2, on arm64
+and amd64: the bounds leave room for the architectures that take other steps).
+The growth on the oscillator is ODEPACK's: SciPy's own `lsoda` reaches 2.1e3 on
+the same problem at rtol 1e-9. On the LSODA runs of the SciPy fixtures
+(`testdata/ode.json`) E stays within 20 times SciPy's own error (7 times on
+amd64's worst, the Van der Pol limit cycle at rtol 1e-9, whose error is a phase
+error), and 20 tolerances at least, with `nfev` within 20 % of SciPy's. Between output times
+`Odeint` interpolates with the Nordsieck polynomial (`intdy`) of the order used,
+to the accuracy of the method (`TestOdeintManyOutputs`).
 
 ## Interfaces
 
