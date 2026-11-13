@@ -34,10 +34,10 @@ type OdeintInfo struct {
 	// HU is the step size last used, TCur the time reached.
 	HU, TCur []float64
 	// NST, NFE and NJE are the cumulative numbers of steps, right-hand side
-	// evaluations and Jacobian evaluations.
+	// evaluations (every call, those of finite-difference Jacobians included)
+	// and Jacobian evaluations.
 	NST, NFE, NJE []int
-	// MUsed is the method of the last step: 1 non-stiff (Runge–Kutta),
-	// 2 stiff (BDF).
+	// MUsed is the method of the last step: 1 non-stiff (Adams), 2 stiff (BDF).
 	MUsed []int
 	// Message describes the outcome.
 	Message string
@@ -45,10 +45,15 @@ type OdeintInfo struct {
 
 // Odeint integrates dy/dt = f(t, y) from t[0] and returns y at every time of
 // t (which must be monotonic) as a len(t)×n ndarray whose first row is y0.
-// It is SciPy's odeint(func, y0, t, Dfun=...) over the LSODA-style switching
-// method; SciPy's func(y, t) takes the state first, here f(t, y, dydt) takes
-// time first, as with odeint(..., tfirst=True). On failure the rows not
-// reached are NaN and the error wraps ErrExcessWork or ErrStepTooSmall.
+// It is SciPy's odeint(func, y0, t, Dfun=...), ODEPACK's lsoda (the LSODA
+// method of SolveIVP, driven to each output time and interpolated there);
+// SciPy's func(y, t) takes the state first, here f(t, y, dydt) takes time
+// first, as with odeint(..., tfirst=True). On failure the rows not reached are
+// NaN and the error wraps ErrExcessWork (more than MxStep steps between two
+// output times), ErrStepTooSmall (repeated error test or corrector failures, or
+// a non-finite state) or ErrODEInput (illegal input: output times closer than
+// the precision of t, a zero error weight, a tolerance below the machine
+// precision).
 func Odeint(f ODEFunc, y0 []float64, t []float64, opts *OdeintOptions) (*ndarray.Array, *OdeintInfo, error) {
 	var o OdeintOptions
 	if opts != nil {

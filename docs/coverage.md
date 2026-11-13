@@ -71,9 +71,9 @@ Counted by `go run` over the tables below (rows, not names).
 | 28 | `DOP853` | | `DOP853` | done | |
 | 29 | `Radau` | `ode23s`-like (Rosenbrock, different) | `Radau` | done | |
 | 30 | `BDF` | `ode15s` (NDF) | `BDF` | done | |
-| 31 | `LSODA` | `ode113` (Adams) in spirit | `LSODA` | partial | not a port of ODEPACK's Adams/BDF LSODA; RK45-or-DOP853 / BDF switch, 1.2-2.2x the evaluations on stiff problems; `min_step`, `lband`, `uband` missing |
+| 31 | `LSODA` | `ode113` (Adams) in spirit | `LSODA` | partial | ODEPACK's Adams/BDF lsoda as in SciPy 1.18.1's `lsoda.c` (same evaluation counts on the benchmark cases); `min_step` (no effect in SciPy either), `lband`, `uband` missing |
 | 32 | `OdeSolver`, `DenseOutput`, `OdeSolution` (low-level step API) | `deval` | `ODESolution.Eval` | partial | the stepper classes (`step()`, `t_old`, `step_size`, `status`) are internal; only the dense solution is public |
-| 33 | `odeint` | | `Odeint` | partial | `ml`/`mu` banded Jacobians, `tcrit`, `hmin`, `ixpr`, `mxordn`, `mxords`, `tfirst`-less form, full Adams/BDF as in ODEPACK |
+| 33 | `odeint` | | `Odeint` | partial | `ml`/`mu` banded Jacobians, `tcrit`, `hmin`, `ixpr`, `mxordn`, `mxords`, `tfirst`-less form |
 | 34 | `ode` (VODE, ZVODE, dopri5, dop853, lsoda), `complex_ode` | | | missing | VODE and ZVODE ports (netlib); complex support |
 | 35 | `ODEintWarning` | | `OdeintInfo` | done | |
 | 36 | events (`solve_ivp(events=)`) | `odeset('Events')` | `Event`, `IVPOptions.Events` | done | |
@@ -112,8 +112,8 @@ Counted by `go run` over the tables below (rows, not names).
 4. **`solve_bvp`.** Row 39, MATLAB `bvp4c/5c`. Dep: dense LU (have it in
    `linalg.go`); sparse form would use go-sparse.
 5. **Legacy ODE classes.** Row 34 (`ode`/VODE/ZVODE, `complex_ode`), 31 and 33
-   (a real ODEPACK LSODA port, which would make `Odeint` evaluation counts
-   match SciPy's). Dep: complex arithmetic (stdlib `complex128`); netlib
+   (the ODEPACK LSODA port is done: `Odeint` evaluation counts match SciPy's).
+   Dep: complex arithmetic (stdlib `complex128`); netlib
    Fortran as the oracle, as for QUADPACK.
 6. **Solver API.** Expose the stepper, add `OutputFcn`,
    `NonNegative`, `Refine`, mass matrices (rows 32, 38, M5, M9). Dep: none.

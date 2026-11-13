@@ -42,9 +42,10 @@ const (
 	// method in its numerical differentiation formula (NDF) variant, the
 	// quasi-constant step size implementation of SciPy's "BDF".
 	BDF
-	// LSODA switches automatically between an explicit Runge–Kutta method
-	// on non-stiff stretches and BDF on stiff ones ("LSODA" in spirit; see
-	// docs/design.md for how it differs from ODEPACK's Adams/BDF LSODA).
+	// LSODA is ODEPACK's lsoda as SciPy 1.18.1 ships it: variable-order
+	// Adams–Moulton (1–12) on non-stiff stretches and BDF (1–5) on stiff
+	// ones, switching automatically (docs/design.md, with its accuracy
+	// contract). Banded Jacobians and min_step are not provided.
 	LSODA
 )
 
@@ -114,7 +115,9 @@ type Solution struct {
 	// NFev, NJev and NLU count right-hand side evaluations, Jacobian
 	// evaluations and LU decompositions, as SciPy counts them: NFev does
 	// not include the evaluations spent on finite-difference Jacobians,
-	// which NFevJac reports.
+	// which NFevJac reports. LSODA is the exception, as in SciPy: its NFev
+	// counts every call of the right-hand side, its own finite differences
+	// included, NFevJac is 0 and NLU equals NJev.
 	NFev, NJev, NLU, NFevJac int
 	// NSteps is the number of accepted steps.
 	NSteps int

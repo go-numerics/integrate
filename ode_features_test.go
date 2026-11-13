@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
+	"slices"
 	"testing"
 )
 
@@ -185,6 +186,14 @@ func TestOdeintAgainstSciPy(t *testing.T) {
 		t.Errorf("Robertson should end on the stiff method, MUsed %v", info.MUsed)
 	}
 	t.Logf("Robertson odeint: nfe %d (ODEPACK %d), MUsed %v (ODEPACK %v)", info.NFE[len(info.NFE)-1], rob.NFE, info.MUsed, rob.MUsed)
+	// ODEPACK's lsoda: the same method at every output time, and the same work
+	// up to the rounding that decides its step selection (exact on arm64).
+	if !slices.Equal(info.MUsed, rob.MUsed) {
+		t.Errorf("MUsed %v, ODEPACK %v", info.MUsed, rob.MUsed)
+	}
+	if d := math.Abs(float64(info.NFE[len(info.NFE)-1]-rob.NFE)) / float64(rob.NFE); d > 0.05 {
+		t.Errorf("nfe %d, ODEPACK %d (%.1f %% apart)", info.NFE[len(info.NFE)-1], rob.NFE, 100*d)
+	}
 
 	var lv struct {
 		T []float64   `json:"t"`

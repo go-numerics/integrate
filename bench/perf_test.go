@@ -52,8 +52,9 @@ import (
 //     the signature double(double) or double(int, double*)), so those rows
 //     call a Python function, and TestWorkParity checks that SciPy and Go call
 //     it the same number of times (the same work), the equal counts of the
-//     table in docs/perf.md. Where the algorithms differ by design (LSODA,
-//     odeint) the two counts are pinned in the test and reported.
+//     table in docs/perf.md. (LSODA and odeint are ODEPACK's lsoda, ported
+//     from SciPy's lsoda.c: no row is pinned any more; a row whose algorithms
+//     differ by design would carry its two counts in the test and report them.)
 
 const (
 	gold    = 0.6180339887498949
@@ -140,10 +141,10 @@ type row struct {
 	setup, names          string // the Python expression of the arguments, their names
 	data                  [][]float64
 	n                     int
-	body                  string               // the SciPy call, in the names
+	body                  string                 // the SciPy call, in the names
 	run                   func(cb string) string // the SciPy call as a function of its callback (a callback row)
-	raw                   string               // the callback's Python source
-	obj, use              string               // a method: the object built outside the loop, the call timed
+	raw                   string                 // the callback's Python source
+	obj, use              string                 // a method: the object built outside the loop, the call timed
 	mk                    func() func()
 	goN                   func() int // calls of the integrand by Go (the work), with run: those of SciPy
 	skipWork              bool       // no count: a compiled callback cannot be counted
@@ -206,7 +207,12 @@ func rows() []row {
 			mk: func() func() {
 				return func() { r, err := integrate.Quad(f, a, b, o); sink, sinkErr = r.Value, err }
 			},
-			goN: func() int { n := 0; r, _ := integrate.Quad(func(x float64) float64 { n++; return f(x) }, a, b, o); _ = r; return n }})
+			goN: func() int {
+				n := 0
+				r, _ := integrate.Quad(func(x float64) float64 { n++; return f(x) }, a, b, o)
+				_ = r
+				return n
+			}})
 	}
 	// A quad row with a compiled (libm) callback: the same function as a twin row.
 	quadC := func(name, ref, cname string, f func(float64) float64, a, b float64, o *integrate.QuadOptions, args string) {
@@ -249,7 +255,10 @@ func rows() []row {
 		run: func(cb string) string { return "si.dblquad(" + cb + ", 0, 1, 0, lambda x: x)" },
 		mk: func() func() {
 			f := func(y, x float64) float64 { return math.Exp(-x * y) }
-			return func() { r, err := integrate.DblQuad(f, 0, 1, integrate.Const(0), func(x float64) float64 { return x }, nil); sink, sinkErr = r.Value, err }
+			return func() {
+				r, err := integrate.DblQuad(f, 0, 1, integrate.Const(0), func(x float64) float64 { return x }, nil)
+				sink, sinkErr = r.Value, err
+			}
 		},
 		goN: func() int {
 			n := 0
@@ -338,7 +347,9 @@ func rows() []row {
 		func() func() { return func() { sinkAny, sinkErr = integrate.SimpsonND(g, nil, 0.1, 0) } })
 	ndr("CumulativeTrapezoidND axis 0", "CumulativeTrapezoidND", "cumulative_trapezoid(g, dx=0.1, axis=0, initial=0)",
 		"si.cumulative_trapezoid(g, dx=0.1, axis=0, initial=0)",
-		func() func() { return func() { sinkAny, sinkErr = integrate.CumulativeTrapezoidND(g, nil, 0.1, 0, true) } })
+		func() func() {
+			return func() { sinkAny, sinkErr = integrate.CumulativeTrapezoidND(g, nil, 0.1, 0, true) }
+		})
 
 	// Initial value problems.
 	lotka := "lambda t, y: [1.5*y[0] - y[0]*y[1], -3*y[1] + y[0]*y[1]]"
@@ -394,7 +405,8 @@ func rows() []row {
 	vd("SolveIVP VdP1000 Radau jac", "Radau", integrate.Radau, true, [2]int{}, 0.02)
 	vd("SolveIVP VdP1000 BDF", "BDF", integrate.BDF, false, [2]int{}, 0.01)
 	vd("SolveIVP VdP1000 BDF jac", "BDF", integrate.BDF, true, [2]int{}, 0)
-	vd("SolveIVP VdP1000 LSODA", "LSODA", integrate.LSODA, false, [2]int{2594, 1803}, 0)
+	// LSODA is ODEPACK's (SciPy 1.18.1's lsoda.c): the same evaluation count.
+	vd("SolveIVP VdP1000 LSODA", "LSODA", integrate.LSODA, false, [2]int{}, 0)
 
 	// Odeint.
 	robertson := "lambda t, y: [-0.04*y[0] + 1e4*y[1]*y[2], 0.04*y[0] - 1e4*y[1]*y[2] - 3e7*y[1]**2, 3e7*y[1]**2]"
@@ -414,10 +426,10 @@ func rows() []row {
 	odeint("Odeint Robertson", "odeint(robertson, rtol=1e-8, atol=1e-12)", robertson,
 		func(cb string) string {
 			return "si.odeint(" + cb + ", [1, 0, 0], np.array([0, 0.4, 4, 40, 400, 4000, 40000]), rtol=1e-8, atol=1e-12, tfirst=True)"
-		}, robertsonF, []float64{1, 0, 0}, tsR, oR, [2]int{2222, 1683})
+		}, robertsonF, []float64{1, 0, 0}, tsR, oR, [2]int{})
 	odeint("Odeint Lotka 101 times", "odeint(lotka, 101 times)", lotka,
 		func(cb string) string { return "si.odeint(" + cb + ", [10, 5], 15.0*np.arange(101)/100, tfirst=True)" },
-		lotkaF, l0, linspace(0, 15, 101), nil, [2]int{1880, 1243})
+		lotkaF, l0, linspace(0, 15, 101), nil, [2]int{})
 
 	// The dense output of a solution.
 	dense, _ := integrate.SolveIVP(lotkaF, [2]float64{0, 15}, l0, &integrate.IVPOptions{DenseOutput: true})
@@ -563,9 +575,10 @@ func TestDataParity(t *testing.T) {
 // adaptive integrator; SciPy's nfev excludes the calls of finite-difference
 // Jacobians, so both sides count every call). The Python side wraps the
 // callback in a counter and hands the count back as the argument to hash.
-// Where the algorithm differs by design (LSODA, odeint: this package switches
-// methods differently from ODEPACK) the pair (Go, SciPy) is pinned, so that a
-// change on either side is noticed.
+// Where the algorithm differs by design the pair (Go, SciPy) is pinned, so that
+// a change on either side is noticed; none does now (LSODA and odeint call the
+// callback exactly as often as SciPy's: 1803, 1683 and 1243 times, were 2594,
+// 2222 and 1880 before the port of ODEPACK's lsoda).
 func TestWorkParity(t *testing.T) {
 	if !*parityFlag {
 		t.Skip("set -perf.parity (starts the SciPy worker through uv)")

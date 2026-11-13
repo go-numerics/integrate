@@ -8,8 +8,8 @@
 
 Numerical integration and ODE solvers in pure Go (`CGO_ENABLED=0`): adaptive
 quadrature (QUADPACK), fixed and sample rules, multiple integrals, and initial
-value problems with RK45, RK23, DOP853, Radau, BDF and automatic stiffness
-switching — the functionality of `scipy.integrate` for the Go scientific
+value problems with RK45, RK23, DOP853, Radau, BDF and ODEPACK's LSODA
+(automatic Adams/BDF switching) — the functionality of `scipy.integrate` for the Go scientific
 stack ([go-ndarray](https://github.com/go-ndarray/ndarray), go-plot,
 go-notebook), with the same algorithms, defaults and diagnostics.
 
@@ -122,9 +122,10 @@ More in [example_test.go](example_test.go).
 
 Complex-valued integrands and states, vectorized right-hand sides, sparse or
 banded Jacobians, `quad_vec`, `cubature`, `tanhsinh`, `solve_bvp` and the
-legacy `ode` class. `LSODA` is an automatic Runge–Kutta/BDF switch, not a port
-of ODEPACK's Adams/BDF LSODA: same purpose, different evaluation counts (see
-design.md).
+legacy `ode` class. `LSODA` and `Odeint` are ODEPACK's Adams/BDF lsoda as SciPy
+ships it, without banded Jacobians, `tcrit`, `hmin`, `mxordn` and `mxords`: the
+same evaluation counts as SciPy's on its cases, an accuracy contract stated
+against a 300-bit reference (see docs/design.md).
 
 [docs/roadmap.md](docs/roadmap.md) lists what Julia's QuadGK, HCubature and
 OrdinaryDiffEq, R's deSolve and GSL do better, ranked by gain for cost, with an

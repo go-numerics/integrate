@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-08T14:35:19+01:00",
+  "date": "2026-11-13T14:56:27+01:00",
   "commit": "",
   "repo": "go-numerics/integrate",
-  "go_version": "go1.27.3",
-  "machine": "darwin/arm64, 16 CPUs",
+  "go_version": "go1.27.4",
+  "machine": "darwin/amd64, 16 CPUs",
   "max_load": 8,
   "load": {
     "min": 0,
@@ -505,7 +505,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5])",
       "parity": "tolerance",
-      "allocs": 95,
+      "allocs": 94,
       "go": {
         "median": 0,
         "q1": 0,
@@ -523,7 +523,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23')",
       "parity": "tolerance",
-      "allocs": 210,
+      "allocs": 209,
       "go": {
         "median": 0,
         "q1": 0,
@@ -541,7 +541,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12)",
       "parity": "tolerance",
-      "allocs": 277,
+      "allocs": 276,
       "go": {
         "median": 0,
         "q1": 0,
@@ -559,7 +559,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True)",
       "parity": "tolerance",
-      "allocs": 1228,
+      "allocs": 1227,
       "go": {
         "median": 0,
         "q1": 0,
@@ -577,7 +577,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5)",
       "parity": "tolerance",
-      "allocs": 161,
+      "allocs": 160,
       "go": {
         "median": 0,
         "q1": 0,
@@ -595,7 +595,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau')",
       "parity": "tolerance",
-      "allocs": 353,
+      "allocs": 351,
       "go": {
         "median": 0,
         "q1": 0,
@@ -613,7 +613,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau', jac)",
       "parity": "tolerance",
-      "allocs": 349,
+      "allocs": 348,
       "go": {
         "median": 0,
         "q1": 0,
@@ -631,7 +631,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF')",
       "parity": "tolerance",
-      "allocs": 596,
+      "allocs": 598,
       "go": {
         "median": 0,
         "q1": 0,
@@ -667,7 +667,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA')",
       "parity": "tolerance",
-      "allocs": 608,
+      "allocs": 764,
       "go": {
         "median": 0,
         "q1": 0,
@@ -685,7 +685,7 @@
       "func": "Odeint",
       "reference": "scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12)",
       "parity": "tolerance",
-      "allocs": 106,
+      "allocs": 44,
       "go": {
         "median": 0,
         "q1": 0,
@@ -703,7 +703,7 @@
       "func": "Odeint",
       "reference": "scipy 1.18.1 integrate.odeint(lotka, 101 times)",
       "parity": "tolerance",
-      "allocs": 99,
+      "allocs": 68,
       "go": {
         "median": 0,
         "q1": 0,

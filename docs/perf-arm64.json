@@ -1971,7 +1971,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5])",
       "parity": "tolerance",
-      "allocs": 95,
+      "allocs": 94,
       "go_iters": 8712,
       "ref_iters": 160,
       "rounds": [
@@ -2043,7 +2043,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23')",
       "parity": "tolerance",
-      "allocs": 210,
+      "allocs": 209,
       "go_iters": 6400,
       "ref_iters": 96,
       "rounds": [
@@ -2115,7 +2115,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12)",
       "parity": "tolerance",
-      "allocs": 277,
+      "allocs": 276,
       "go_iters": 1474,
       "ref_iters": 14,
       "rounds": [
@@ -2187,7 +2187,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True)",
       "parity": "tolerance",
-      "allocs": 1228,
+      "allocs": 1227,
       "go_iters": 2673,
       "ref_iters": 92,
       "rounds": [
@@ -2259,7 +2259,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5)",
       "parity": "tolerance",
-      "allocs": 161,
+      "allocs": 160,
       "go_iters": 6423,
       "ref_iters": 104,
       "rounds": [
@@ -2619,7 +2619,7 @@
       "func": "SolveIVP",
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA')",
       "parity": "tolerance",
-      "allocs": 608,
+      "allocs": 764,
       "go_iters": 858,
       "ref_iters": 94,
       "rounds": [
@@ -2691,7 +2691,7 @@
       "func": "Odeint",
       "reference": "scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12)",
       "parity": "tolerance",
-      "allocs": 106,
+      "allocs": 44,
       "go_iters": 600,
       "ref_iters": 79,
       "rounds": [
@@ -2763,7 +2763,7 @@
       "func": "Odeint",
       "reference": "scipy 1.18.1 integrate.odeint(lotka, 101 times)",
       "parity": "tolerance",
-      "allocs": 99,
+      "allocs": 68,
       "go_iters": 2101,
       "ref_iters": 149,
       "rounds": [

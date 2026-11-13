@@ -46,18 +46,18 @@ ns/call, median [first quartile, third quartile]; ratio = Go / reference.
 | SimpsonND axis 1 | `SimpsonND` | scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=1) | 3.752e+04 [3.731e+04, 3.801e+04] | 1.238e+05 [1.231e+05, 1.244e+05] | 0.30 | faster | exact | 9 |
 | SimpsonND axis 0 | `SimpsonND` | scipy 1.18.1 integrate.simpson(g, dx=0.1, axis=0) | 2.725e+04 [2.697e+04, 2.741e+04] | 9.263e+04 [9.249e+04, 9.365e+04] | 0.29 | faster | exact | 8 |
 | CumulativeTrapezoidND axis 0 | `CumulativeTrapezoidND` | scipy 1.18.1 integrate.cumulative_trapezoid(g, dx=0.1, axis=0, initial=0) | 8.722e+04 [8.499e+04, 8.812e+04] | 3.666e+05 [3.629e+05, 3.717e+05] | 0.24 | faster | exact | 9 |
-| SolveIVP Lotka RK45 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5]) | 1.399e+04 [1.39e+04, 1.407e+04] | 1.196e+06 [1.195e+06, 1.205e+06] | 0.01 | faster | tolerance | 95 |
-| SolveIVP Lotka RK23 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23') | 2.856e+04 [2.831e+04, 2.867e+04] | 2.024e+06 [2e+06, 2.027e+06] | 0.01 | faster | tolerance | 210 |
-| SolveIVP Lotka DOP853 tight | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12) | 7.259e+04 [7.22e+04, 7.593e+04] | 7.187e+06 [7.168e+06, 7.217e+06] | 0.01 | faster | tolerance | 277 |
-| SolveIVP Lotka dense t_eval | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True) | 4.191e+04 [4.146e+04, 4.345e+04] | 1.672e+06 [1.649e+06, 1.68e+06] | 0.03 | faster | tolerance | 1228 |
-| SolveIVP Lotka event | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5) | 1.673e+04 [1.657e+04, 1.68e+04] | 1.916e+06 [1.895e+06, 1.946e+06] | 0.01 | faster | tolerance | 161 |
+| SolveIVP Lotka RK45 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, (0, 15), [10, 5]) | 1.399e+04 [1.39e+04, 1.407e+04] | 1.196e+06 [1.195e+06, 1.205e+06] | 0.01 | faster | tolerance | 94 |
+| SolveIVP Lotka RK23 | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='RK23') | 2.856e+04 [2.831e+04, 2.867e+04] | 2.024e+06 [2e+06, 2.027e+06] | 0.01 | faster | tolerance | 209 |
+| SolveIVP Lotka DOP853 tight | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, method='DOP853', rtol=1e-10, atol=1e-12) | 7.259e+04 [7.22e+04, 7.593e+04] | 7.187e+06 [7.168e+06, 7.217e+06] | 0.01 | faster | tolerance | 276 |
+| SolveIVP Lotka dense t_eval | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, t_eval=1001 points, dense_output=True) | 4.191e+04 [4.146e+04, 4.345e+04] | 1.672e+06 [1.649e+06, 1.68e+06] | 0.03 | faster | tolerance | 1227 |
+| SolveIVP Lotka event | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(lotka, events=y0-5) | 1.673e+04 [1.657e+04, 1.68e+04] | 1.916e+06 [1.895e+06, 1.946e+06] | 0.01 | faster | tolerance | 160 |
 | SolveIVP VdP1000 Radau | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau') | 1.367e+05 [1.359e+05, 1.38e+05] | 2.733e+07 [2.727e+07, 2.767e+07] | 0.01 | faster | tolerance | 350 |
 | SolveIVP VdP1000 Radau jac | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='Radau', jac) | 1.316e+05 [1.313e+05, 1.325e+05] | 2.509e+07 [2.498e+07, 2.519e+07] | 0.01 | faster | tolerance | 345 |
 | SolveIVP VdP1000 BDF | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF') | 1.725e+05 [1.723e+05, 1.743e+05] | 2.848e+07 [2.832e+07, 2.899e+07] | 0.01 | faster | tolerance | 595 |
 | SolveIVP VdP1000 BDF jac | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='BDF', jac) | 1.657e+05 [1.651e+05, 1.666e+05] | 2.508e+07 [2.504e+07, 2.547e+07] | 0.01 | faster | tolerance | 586 |
-| SolveIVP VdP1000 LSODA | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA') | 1.299e+05 [1.296e+05, 1.309e+05] | 2.088e+06 [2.08e+06, 2.116e+06] | 0.06 | faster | tolerance | 608 |
-| Odeint Robertson | `Odeint` | scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12) | 1.827e+05 [1.814e+05, 1.834e+05] | 1.374e+06 [1.372e+06, 1.38e+06] | 0.13 | faster | tolerance | 106 |
-| Odeint Lotka 101 times | `Odeint` | scipy 1.18.1 integrate.odeint(lotka, 101 times) | 5.19e+04 [5.094e+04, 5.228e+04] | 6.783e+05 [6.528e+05, 6.8e+05] | 0.08 | faster | tolerance | 99 |
+| SolveIVP VdP1000 LSODA | `SolveIVP` | scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA') | 1.299e+05 [1.296e+05, 1.309e+05] | 2.088e+06 [2.08e+06, 2.116e+06] | 0.06 | faster | tolerance | 764 |
+| Odeint Robertson | `Odeint` | scipy 1.18.1 integrate.odeint(robertson, rtol=1e-8, atol=1e-12) | 1.827e+05 [1.814e+05, 1.834e+05] | 1.374e+06 [1.372e+06, 1.38e+06] | 0.13 | faster | tolerance | 44 |
+| Odeint Lotka 101 times | `Odeint` | scipy 1.18.1 integrate.odeint(lotka, 101 times) | 5.19e+04 [5.094e+04, 5.228e+04] | 6.783e+05 [6.528e+05, 6.8e+05] | 0.08 | faster | tolerance | 68 |
 | ODESolution.Eval scalar | `ODESolution.Eval` | scipy 1.18.1 integrate.sol.sol(7.5) | 17.22 [17.17, 17.75] | 4434 [4399, 4492] | 0.00 | faster | tolerance | 1 |
 | ODESolution.EvalInto scalar | `ODESolution.EvalInto` | scipy 1.18.1 integrate.sol.sol(7.5) | 8.634 [8.464, 8.822] | 4409 [4366, 4442] | 0.00 | faster | tolerance | 0 |
 | ODESolution.EvalArray 1001 points | `ODESolution.EvalArray` | scipy 1.18.1 integrate.sol.sol(t_array) | 1.842e+04 [1.74e+04, 1.877e+04] | 3.3e+05 [3.274e+05, 3.362e+05] | 0.06 | faster | tolerance | 7 |

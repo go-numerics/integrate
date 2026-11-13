@@ -85,12 +85,15 @@ exceed local tolerances on long or chaotic runs, for SciPy as for us).
   zero of cos t, as SciPy.
 * **t_eval, dense output, backwards integration** agree with SciPy to 1e-9
   (RK45 defaults) and 1e-12 (DOP853, rtol 1e-8).
-* **LSODA / odeint** are a different algorithm from ODEPACK's (see
-  design.md): accuracy is held to that of ODEPACK and of the method actually
-  running; on the stiff problems this method uses 1.2–2.2× ODEPACK's
-  right-hand-side evaluations. `odeint` on Robertson (rtol 1e-8, atol 1e-12)
-  stays within 10× ODEPACK's error at every output time, both end on the
-  stiff method.
+* **LSODA / odeint** are ODEPACK's lsoda, ported from SciPy's `lsoda.c` (see
+  design.md): nfev, steps, njev and nlu are identical to SciPy's on 19 of the
+  33 LSODA runs on arm64 (14 on amd64), and nfev is within 20 % on all (the
+  step selection of ODEPACK hinges on the last bit: the C source itself takes
+  647 evaluations on the harmonic problem with fused multiply-adds and 682
+  without). Accuracy is held to 5 times ODEPACK's own error (and 20
+  tolerances at least), and to the bounds of the accuracy contract against a
+  300-bit reference (design.md). `odeint` on Robertson (rtol 1e-8, atol 1e-12)
+  takes SciPy's 1683 evaluations and the same `MUsed` at every output time.
 
 ## Negative control
 
