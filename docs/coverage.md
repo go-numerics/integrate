@@ -71,9 +71,9 @@ Counted by `go run` over the tables below (rows, not names).
 | 28 | `DOP853` | | `DOP853` | done | |
 | 29 | `Radau` | `ode23s`-like (Rosenbrock, different) | `Radau` | done | |
 | 30 | `BDF` | `ode15s` (NDF) | `BDF` | done | |
-| 31 | `LSODA` | `ode113` (Adams) in spirit | `LSODA` | partial | ODEPACK's Adams/BDF lsoda as in SciPy 1.18.1's `lsoda.c` (same evaluation counts on the benchmark cases); `min_step` (no effect in SciPy either), `lband`, `uband` missing |
+| 31 | `LSODA` | `ode113` (Adams) in spirit | `LSODA` | partial | ODEPACK's Adams/BDF lsoda as in SciPy 1.18.1's `lsoda.c` (same evaluation counts on the benchmark cases); `MinStep`, `Band` (`lband`, `uband`) and `BandJac` provided |
 | 32 | `OdeSolver`, `DenseOutput`, `OdeSolution` (low-level step API) | `deval` | `ODESolution.Eval` | partial | the stepper classes (`step()`, `t_old`, `step_size`, `status`) are internal; only the dense solution is public |
-| 33 | `odeint` | | `Odeint` | partial | `ml`/`mu` banded Jacobians, `tcrit`, `hmin`, `ixpr`, `mxordn`, `mxords`, `tfirst`-less form |
+| 33 | `odeint` | | `Odeint` | partial | `ixpr`, `tfirst`-less form (`ml`/`mu`, `tcrit`, `hmin`, `mxordn`, `mxords` are `Band`/`BandJac`, `TCrit`, `HMin`, `MxOrdN`, `MxOrdS`; SciPy ignores `hmin`) |
 | 34 | `ode` (VODE, ZVODE, dopri5, dop853, lsoda), `complex_ode` | | | missing | VODE and ZVODE ports (netlib); complex support |
 | 35 | `ODEintWarning` | | `OdeintInfo` | done | |
 | 36 | events (`solve_ivp(events=)`) | `odeset('Events')` | `Event`, `IVPOptions.Events` | done | |

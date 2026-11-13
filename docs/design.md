@@ -179,12 +179,23 @@ Lotka–Volterra at 101 times) they are equal on arm64 (1803, 1683 and 1243 call
 of the right-hand side, against 2594, 2222 and 1880 before), and on the other
 fixtures within 20 %.
 
-What is not ported, because the API reaches none of it: banded Jacobians (`jt`
-4 and 5; the API has no bandwidths), `itask` 2, 3 and 4, `istate` 3, `ixpr` and
-`mxhnil` (printing), `mxordn` and `mxords` (fixed at 12 and 5), and the
-workspace-size bookkeeping. `hmin` is 0 as in SciPy, where `lsoda.c` reads
-`rwork[6]` into a local and never stores it: `min_step` has no effect there
-either. Two guards are not ODEPACK's: a step that leaves a non-finite state is
+Options, with SciPy's names: `Odeint`'s `HMin`, `MxOrdN`, `MxOrdS`, `TCrit`
+(`itask` 4: the integration does not step past a critical time), `Band` and
+`BandJac` (`ml`, `mu` and the banded Jacobian: `bnorm`, banded `prja` with the
+`jt` 4 and 5 paths, an LU of the band as LAPACK's `dgbtf2` and `dgbtrs`, stored
+by rows of the band, `BandJac[(Upper+i-j)*n+j]`), and `IVPOptions`' `MinStep`,
+`Band` and `BandJac` (SciPy's `min_step`, `lband`, `uband`; LSODA only). The
+band is exact for a banded problem: the solution agrees with the full matrix's
+to the tolerance, and on a tridiagonal diffusion problem the evaluation counts
+are within 15 % of `lsoda.c`'s (621 against 621 with the analytic band on
+arm64), the chaos of the step selection as above. Not ported, because the API
+reaches none of it: `itask` 2 and 3, `istate` 3, `ixpr` and `mxhnil` (printing),
+and the workspace-size bookkeeping. `lsoda.c` reads `rwork[6]` (hmin) into a
+local and never stores it, so SciPy's `hmin` and `min_step` have no effect;
+here they are ODEPACK's (the smallest step) and the default 0 is SciPy's
+behaviour. `bnorm` is kept as `lsoda.c` has it (it reads the band storage
+`ml` rows above where P is, so `pdnorm` of a banded problem is not the norm of
+P; it only steers the method switch). Two guards are not ODEPACK's: a step that leaves a non-finite state is
 a failure (its norms, written with C's `fmax`, do not see a NaN), and
 `SolveIVP` stops when `h` has underflowed to 0 (ODEPACK has no floor on `h` and,
 called one step at a time, would not stop). Nothing else changes ODEPACK's

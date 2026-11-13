@@ -121,9 +121,10 @@ More in [example_test.go](example_test.go).
 ## Not provided
 
 Complex-valued integrands and states, vectorized right-hand sides, sparse or
-banded Jacobians, `quad_vec`, `cubature`, `tanhsinh`, `solve_bvp` and the
+banded Jacobians (other than LSODA's), `quad_vec`, `cubature`, `tanhsinh`, `solve_bvp` and the
 legacy `ode` class. `LSODA` and `Odeint` are ODEPACK's Adams/BDF lsoda as SciPy
-ships it, without banded Jacobians, `tcrit`, `hmin`, `mxordn` and `mxords`: the
+ships it, with its options (`hmin`, `mxordn`, `mxords`, `tcrit`, banded
+Jacobians `ml`/`mu`, `min_step`, `lband`/`uband`): the
 same evaluation counts as SciPy's on its cases, an accuracy contract stated
 against a 300-bit reference (see docs/design.md).
 
