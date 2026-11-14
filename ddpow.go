@@ -114,17 +114,54 @@ func powRecip(x, e float64) float64 {
 		return math.Sqrt(x) // fl(1/2) is exact and sqrt is correctly rounded
 	}
 	r := math.Pow(x, e)
-	rk1 := dd{1, 0}
-	for i := 1; i < int(k); i++ {
-		rk1 = ddMulF(rk1, r)
+	// r^k by binary exponentiation in double-double: at most 4 squarings and 3
+	// products for k <= 16, not k-1 products.
+	var p dd
+	switch int(k) {
+	case 3, 4, 5, 6:
+		// the common orders, without the normalization of ddMul: r^2 as a
+		// pair, then the pair times r or squared, products rounded explicitly
+		// (so that they are not fused into the sums)
+		h1 := float64(r * r)
+		l1 := math.FMA(r, r, -h1)
+		switch int(k) {
+		case 3, 5, 6:
+			h3 := float64(h1 * r)
+			l3 := math.FMA(h1, r, -h3) + l1*r // r^3
+			switch int(k) {
+			case 3:
+				p = dd{h3, l3}
+			case 5:
+				h4 := float64(h1 * h1)
+				l4 := math.FMA(h1, h1, -h4) + 2*h1*l1 // r^4
+				h5 := float64(h4 * r)
+				p = dd{h5, math.FMA(h4, r, -h5) + l4*r}
+			default:
+				h6 := float64(h3 * h3)
+				p = dd{h6, math.FMA(h3, h3, -h6) + 2*h3*l3}
+			}
+		default:
+			h4 := float64(h1 * h1)
+			p = dd{h4, math.FMA(h1, h1, -h4) + 2*h1*l1}
+		}
+	default:
+		n := int(k)
+		b := dd{r, 0}
+		p = dd{1, 0}
+		for ; n > 1; n >>= 1 {
+			if n&1 == 1 {
+				p = ddMul(p, b)
+			}
+			b = ddMul(b, b)
+		}
+		p = ddMul(p, b)
 	}
-	p := ddMulF(rk1, r) // r^k
-	res := ddAdd(p, dd{-x, 0})
-	c := res.hi * r / (k * p.hi) // Newton: r - (r^k - x) / (k r^(k-1))
-	root := twoSum(r, -c)
-	// e - 1/k, with 1/k = q + qlo: e = q, so e - 1/k = -qlo
-	qlo := math.FMA(-e, k, 1) / k
-	root.lo += root.hi * (-math.Log(x) * qlo)
-	root = twoSum(root.hi, root.lo)
-	return root.hi + root.lo
+	res := (p.hi - x) + p.lo  // r^k - x: the difference is exact (Sterbenz)
+	c := res * r / (k * p.hi) // Newton: r - (r^k - x) / (k r^(k-1))
+	d := -c                   // x**(1/k) = r + d
+	if qlo := math.FMA(-e, k, 1) / k; qlo != 0 {
+		// x**e = x**(1/k - qlo) = x**(1/k) (1 - qlo log x); 1/k = e + qlo
+		d -= r * math.Log(x) * qlo
+	}
+	return r + d // one rounding of r + d, with d known to 1e-16 of an ulp
 }
