@@ -27,11 +27,15 @@ slower than SciPy (ratio <= 1); a row above 1 is an open defect.
   and `Odeint` 0.13 (Robertson) and 0.13 (Lotka, 101 times); the Adams/BDF port
   runs more steps than the Runge–Kutta/BDF switch it replaced (those three rows
   were 0.06, 0.13 and 0.08), at the same calls of the right-hand side as
-  SciPy's. Their times, 155, 183 and 86 us, are 9 to 15 % over those of the
+  SciPy's. Their times, 160, 189 and 88 us (re-measured after the go-simd
+  kernels of LSODA's linear algebra, which these systems of 2 and 3 equations
+  do not reach: the scalar loops serve them below 32 entries, so the change is
+  the noise between runs), are 11 to 19 % over those of the
   run of 2026-11-13 17:18 (138, 159 and 79 us), which is the cost of the
   correctly rounded power of the step ratios (about 7 %, with a cheaper
   version of it than the first) and of the option plumbing. The 1-minute load
-  over the rounds was 5.21 to 7.98 (gate 8), so the run is valid.
+  over the rounds was 6.46 to 7.70 (gate 8), so the run is valid; all 42 rows
+  are still faster than SciPy, none above ratio 0.71.
 - The previous table (own harness, host load 14 to 18) is kept as
   [perf-legacy.md](perf-legacy.md).
 
