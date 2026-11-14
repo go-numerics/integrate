@@ -16,17 +16,22 @@ slower than SciPy (ratio <= 1); a row above 1 is an open defect.
   Its timings are **deferred**: no amd64 host has been idle yet, so only the
   allocation counts are recorded (exact under any load).
 - **Timings** are in [perf-table-arm64.md](perf-table-arm64.md) (darwin/arm64,
-  16 CPUs, Go 1.27.4, one core, 2026-11-13, after the port of ODEPACK's lsoda,
+  16 CPUs, Go 1.27.4, one core, 2026-11-14, after the port of ODEPACK's lsoda,
   docs/design.md): every one of the 42 rows is faster than SciPy 1.18.1, with no
-  row above ratio 1. The slowest ratios are `Trapezoid` 1e5 (0.71),
-  `TrapezoidND` axis 0 (0.63), `CumulativeTrapezoid` (0.58) and `Romb` (0.57),
+  row above ratio 1. The slowest ratios are `TrapezoidND` axis 1 (0.81, with
+  quartiles 5.9e4 to 8.3e4 ns: a noisy round, 0.41 in the run of 2026-11-13),
+  `TrapezoidND` axis 0 (0.71), `Trapezoid` 1e5 (0.69), `CumulativeTrapezoid`
+  (0.56) and `Romb` (0.55),
   where SciPy's compiled code is the competitor; the `(libm)` rows, with no
   Python callback on the SciPy side, are 0.08 to 0.21. `SolveIVP` LSODA is 0.07
-  and `Odeint` 0.12 (Robertson) and 0.12 (Lotka, 101 times); the Adams/BDF port
-  runs more steps than the Runge–Kutta/BDF switch it replaced (those two rows
+  and `Odeint` 0.13 (Robertson) and 0.13 (Lotka, 101 times); the Adams/BDF port
+  runs more steps than the Runge–Kutta/BDF switch it replaced (those three rows
   were 0.06, 0.13 and 0.08), at the same calls of the right-hand side as
-  SciPy's. The 1-minute load over the rounds was 5.01 to 6.73 (gate 8), so the
-  run is valid.
+  SciPy's. Their times, 155, 183 and 86 us, are 9 to 15 % over those of the
+  run of 2026-11-13 17:18 (138, 159 and 79 us), which is the cost of the
+  correctly rounded power of the step ratios (about 7 %, with a cheaper
+  version of it than the first) and of the option plumbing. The 1-minute load
+  over the rounds was 5.21 to 7.98 (gate 8), so the run is valid.
 - The previous table (own harness, host load 14 to 18) is kept as
   [perf-legacy.md](perf-legacy.md).
 
