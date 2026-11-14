@@ -36,9 +36,6 @@ type lsodaConfig struct {
 func (s *lsodaSolver) configure(cfg lsodaConfig) error {
 	n := s.n
 	s.exact = cfg.exact
-	if cfg.exact {
-		s.pow = ddPow
-	}
 	if cfg.hmin < 0 {
 		return odeInput("hmin must be non-negative")
 	}

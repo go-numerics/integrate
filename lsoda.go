@@ -137,12 +137,21 @@ type lsodaSolver struct {
 	bandJac                 BandJacFunc
 	bandBuf                 []float64 // the user's banded Jacobian, (ml+mu+1)×n
 	ml, mu                  int
-	pow                     func(x, y float64) float64 // powRecip (correctly rounded, cheap), or ddPow (Exact)
-	exact                   bool                       // the faithful lsoda.c path (see lsodaConfig)
-	tcrit                   float64                    // itask 4 and 5: the time not to step past
+	exact                   bool    // the faithful lsoda.c path (see lsodaConfig)
+	tcrit                   float64 // itask 4 and 5: the time not to step past
 
 	// the interpolant of the last step (SolveIVP), refilled by denseImpl(false)
 	denseBuf *lsodaDense
+}
+
+// pow is the power of the step ratios: powRecip (correctly rounded, cheap), or
+// ddPow on the Exact path. A method and a flag, not a func field: an indirect
+// call is dearer than the branch, and lsoda makes about 2.5 of them a step.
+func (s *lsodaSolver) pow(x, e float64) float64 {
+	if s.exact {
+		return ddPow(x, e)
+	}
+	return powRecip(x, e)
 }
 
 // newLsoda builds the solver; nothing is evaluated until the first step.
@@ -172,7 +181,6 @@ func newLsodaBase(core *odeCore) *lsodaSolver {
 	s.acor = make([]float64, n)
 	s.y1 = make([]float64, n)
 	s.tcrit = core.tBound
-	s.pow = powRecip
 	s.mxstep = 500
 	s.mxordn, s.mxords = lsodaMaxOrdAdams, lsodaMaxOrdBDF
 	if !math.IsInf(core.maxStep, 1) {
