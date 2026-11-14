@@ -5,7 +5,11 @@
 
 package integrate
 
-import "math"
+import (
+	"math"
+
+	"github.com/go-simd/floats"
+)
 
 // luBand is the LU decomposition of a banded matrix with partial pivoting, as
 // LAPACK's dgbtf2 and dgbtrs compute it, in LAPACK's band storage: column
@@ -24,10 +28,17 @@ func newLUBand(n, kl, ku int) *luBand {
 
 func (lu *luBand) at(i, j int) *float64 { return &lu.ab[lu.kl+lu.ku+i-j+j*lu.ld] }
 
+// col is the run of m entries of column j starting at row i (contiguous).
+func (lu *luBand) col(i, j, m int) []float64 {
+	k := lu.kl + lu.ku + i - j + j*lu.ld
+	return lu.ab[k : k+m]
+}
+
 // factor overwrites ab, which holds the matrix, with its factors; it reports
 // false when a pivot is exactly zero (dgbtrf's info > 0).
 func (lu *luBand) factor() bool {
 	n, kl, ku := lu.n, lu.kl, lu.ku
+	wide := kl >= simdMin // the column runs are long enough for floats.Axpy
 	ok := true
 	ju := -1
 	for j := 0; j < n; j++ {
@@ -60,6 +71,10 @@ func (lu *luBand) factor() bool {
 			if f == 0 {
 				continue
 			}
+			if wide {
+				floats.Axpy(-f, lu.col(j+1, j, km), lu.col(j+1, c, km))
+				continue
+			}
 			for i := j + 1; i <= j+km; i++ {
 				*lu.at(i, c) -= *lu.at(i, j) * f
 			}
@@ -71,10 +86,16 @@ func (lu *luBand) factor() bool {
 // solve overwrites b with the solution of A x = b.
 func (lu *luBand) solve(b []float64) {
 	n, kl, ku := lu.n, lu.kl, lu.ku
+	wide := kl >= simdMin // forward runs have kl entries, backward kl+ku
+	wideB := kl+ku >= simdMin
 	for j := 0; j < n-1; j++ {
 		km := min(kl, n-1-j)
 		if p := lu.piv[j]; p != j {
 			b[p], b[j] = b[j], b[p]
+		}
+		if wide {
+			floats.Axpy(-b[j], lu.col(j+1, j, km), b[j+1:j+1+km])
+			continue
 		}
 		for i := j + 1; i <= j+km; i++ {
 			b[i] -= b[j] * *lu.at(i, j)
@@ -82,7 +103,12 @@ func (lu *luBand) solve(b []float64) {
 	}
 	for j := n - 1; j >= 0; j-- {
 		b[j] /= *lu.at(j, j)
-		for i := max(0, j-kl-ku); i < j; i++ {
+		lo := max(0, j-kl-ku)
+		if wideB {
+			floats.Axpy(-b[j], lu.col(lo, j, j-lo), b[lo:j])
+			continue
+		}
+		for i := lo; i < j; i++ {
 			b[i] -= b[j] * *lu.at(i, j)
 		}
 	}

@@ -5,7 +5,11 @@
 
 package integrate
 
-import "math"
+import (
+	"math"
+
+	"github.com/go-simd/floats"
+)
 
 // ODEPACK's LSODA (Hindmarsh, ODEPACK, A Systematized Collection of ODE
 // Solvers, IMACS Trans. Sci. Comput. 1 (1983); Petzold, SIAM J. Sci. Stat.
@@ -359,6 +363,10 @@ func (s *lsodaSolver) stodaAdjust(rh *float64) {
 	for j := 1; j < s.l; j++ {
 		r *= *rh
 		col := s.yh[j*n : (j+1)*n]
+		if n >= simdMin {
+			floats.Scale(r, col)
+			continue
+		}
 		for i := range col {
 			col[i] *= r
 		}
