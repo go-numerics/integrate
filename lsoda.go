@@ -151,8 +151,15 @@ func (s *lsodaSolver) pow(x, e float64) float64 {
 	if s.exact {
 		return ddPow(x, e)
 	}
+	if lsodaMathPow {
+		return math.Pow(x, e)
+	}
 	return powRecip(x, e)
 }
+
+// lsodaMathPow selects Go's math.Pow over powRecip for the default path; it
+// exists for the measurement of docs/lsoda-pow.md (TestLsodaPowReport).
+var lsodaMathPow = false
 
 // newLsoda builds the solver; nothing is evaluated until the first step.
 func newLsoda(core *odeCore) *lsodaSolver {
