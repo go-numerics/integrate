@@ -5,7 +5,17 @@
 
 package integrate
 
-import "math"
+import (
+	"math"
+
+	"github.com/go-simd/floats"
+)
+
+// simdMin is the length from which the vector kernels of go-simd/floats beat
+// the scalar loop (the call into assembly costs about 3 ns; docs/perf.md, the
+// BenchmarkKern* family: the scalar loop wins up to 20 elements, the kernel
+// from 64, and is 4 to 14 times faster at 256).
+const simdMin = 32
 
 // Dense LU factorisations with partial pivoting for the Newton iterations of
 // the implicit solvers. Matrices are n×n, row-major. Pivots are chosen as
@@ -54,6 +64,10 @@ func (lu *luReal) factor(m []float64) {
 			if l == 0 {
 				continue
 			}
+			if n >= simdMin {
+				floats.Axpy(-l, a[k*n+k+1:(k+1)*n], a[i*n+k+1:(i+1)*n])
+				continue
+			}
 			for j := k + 1; j < n; j++ {
 				a[i*n+j] -= l * a[k*n+j]
 			}
@@ -69,6 +83,15 @@ func (lu *luReal) solve(b []float64) {
 		if p := lu.piv[k]; p != k {
 			b[k], b[p] = b[p], b[k]
 		}
+	}
+	if n >= simdMin {
+		for i := 1; i < n; i++ {
+			b[i] -= floats.Dot(a[i*n:i*n+i], b[:i])
+		}
+		for i := n - 1; i >= 0; i-- {
+			b[i] = (b[i] - floats.Dot(a[i*n+i+1:(i+1)*n], b[i+1:n])) / a[i*n+i]
+		}
+		return
 	}
 	for i := 1; i < n; i++ {
 		s := b[i]
