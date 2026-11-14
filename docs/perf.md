@@ -93,6 +93,10 @@ an exemption.
   `fixed_quad` itself uses; the cold computation (SciPy's `roots_legendre`) is
   not reachable from the public API once a rule is cached.
 
+LSODA's linear algebra uses go-simd/floats kernels from 32 entries up, and the
+Jacobian-reuse constants were tried on the corpus without a gain:
+[lsoda-kernels.md](lsoda-kernels.md).
+
 ## Allocation counts
 
 The counts of the table are per call, recorded on linux/amd64 (the `perf` job's
