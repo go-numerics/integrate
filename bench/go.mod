@@ -5,7 +5,7 @@ go 1.27.3
 require (
 	github.com/go-ndarray/ndarray v0.34.0
 	github.com/go-numerics/integrate v0.0.0
-	github.com/go-scikit/refbench v0.1.2
+	github.com/go-scikit/refbench v0.4.0
 )
 
 require (
