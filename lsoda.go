@@ -398,6 +398,21 @@ func (s *lsodaSolver) stodaPascal(sign float64) {
 	i1 := s.nqnyh
 	for jb := 0; jb < s.nq; jb++ {
 		i1 -= n
+		if n >= simdMin {
+			// The ascending scalar loop reads yh[i+n] before it is written, so
+			// column by column (column c += column c+1, the next column not yet
+			// touched) is the same sum with disjoint operands: no overlap, and a
+			// sum of x and +-y is exact in the kernel, so the result is bit-identical.
+			for c := i1; c < s.nqnyh; c += n {
+				dst, src := yh[c:c+n], yh[c+n:c+2*n]
+				if sign > 0 {
+					floats.Add(dst, dst, src)
+				} else {
+					floats.Sub(dst, dst, src)
+				}
+			}
+			continue
+		}
 		for i := i1; i < s.nqnyh; i++ {
 			yh[i] += sign * yh[i+n]
 		}
