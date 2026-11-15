@@ -104,6 +104,22 @@ func lotkaF(_ float64, y, d []float64) {
 	d[1] = -3*y[1] + y[0]*y[1]
 }
 
+const diffN = 200
+
+// diffF is the nearest-neighbour diffusion of n = 200 points, zero outside.
+func diffF(_ float64, y, d []float64) {
+	for i := range y {
+		var l, r float64
+		if i > 0 {
+			l = y[i-1]
+		}
+		if i < diffN-1 {
+			r = y[i+1]
+		}
+		d[i] = 400.0 * (l - 2*y[i] + r)
+	}
+}
+
 func vdpF(_ float64, y, d []float64) {
 	d[0] = y[1]
 	d[1] = 1000*(1-y[0]*y[0])*y[1] - y[0]
@@ -418,6 +434,15 @@ func rows() []row {
 	vd("SolveIVP VdP1000 BDF jac", "BDF", integrate.BDF, true, [2]int{}, 0)
 	// LSODA is ODEPACK's (SciPy 1.18.1's lsoda.c): the same evaluation count.
 	vd("SolveIVP VdP1000 LSODA", "LSODA", integrate.LSODA, false, [2]int{}, 0)
+	// n = 200 (the dense kernels of go-simd/floats are used from 32 equations up):
+	// nearest-neighbour diffusion, finite-difference Jacobian on both sides.
+	d0 := make([]float64, diffN)
+	d0[diffN/2] = 1
+	ivp("SolveIVP Diffusion200 LSODA", "solve_ivp(diffusion n=200, method='LSODA')",
+		"lambda t, y: 400.0*(np.concatenate(([0.0], y[:-1])) - 2*y + np.concatenate((y[1:], [0.0])))",
+		func(cb string) string {
+			return "si.solve_ivp(" + cb + ", (0, 0.2), np.where(np.arange(200) == 100, 1.0, 0.0), method='LSODA', rtol=1e-6, atol=1e-9)"
+		}, diffF, [2]float64{0, 0.2}, d0, &integrate.IVPOptions{Method: integrate.LSODA, RTol: 1e-6, ATol: 1e-9}, [2]int{})
 
 	// Odeint.
 	robertson := "lambda t, y: [-0.04*y[0] + 1e4*y[1]*y[2], 0.04*y[0] - 1e4*y[1]*y[2] - 3e7*y[1]**2, 3e7*y[1]**2]"

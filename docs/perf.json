@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "status": "deferred",
-  "date": "2026-11-13T17:20:21+01:00",
+  "date": "2026-11-15T14:08:07+01:00",
   "commit": "",
   "repo": "go-numerics/integrate",
   "go_version": "go1.27.4",
@@ -668,6 +668,24 @@
       "reference": "scipy 1.18.1 integrate.solve_ivp(vdp mu=1000, method='LSODA')",
       "parity": "tolerance",
       "allocs": 37,
+      "go": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ref": {
+        "median": 0,
+        "q1": 0,
+        "q3": 0
+      },
+      "ratio": 0
+    },
+    {
+      "name": "SolveIVP Diffusion200 LSODA",
+      "func": "SolveIVP",
+      "reference": "scipy 1.18.1 integrate.solve_ivp(diffusion n=200, method='LSODA')",
+      "parity": "tolerance",
+      "allocs": 45,
       "go": {
         "median": 0,
         "q1": 0,
