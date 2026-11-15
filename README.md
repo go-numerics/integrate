@@ -41,6 +41,18 @@ go get github.com/go-numerics/integrate
   timings deferred until an amd64 host is idle. The October 2026 timings, taken
   at a host load above 8, are kept in
   [docs/perf-legacy.md](docs/perf-legacy.md) and carry no verdict.
+* **LSODA, faithful or faster.** `Method: LSODA` in `SolveIVP` and `Odeint` is
+  ODEPACK's lsoda as SciPy 1.18.1 ships it (automatic Adams/BDF switching).
+  With `Exact: true` it equals SciPy's `lsoda.c` exactly: the same steps and the
+  same number of right-hand-side calls. Without it, the default path may differ
+  from `lsoda.c` within a stated accuracy contract (checked against 300-bit
+  `math/big` references, see [docs/design.md](docs/design.md)), and from 32
+  equations up the dense linear algebra, the rescaling, the Pascal update and
+  the weighted max-norm run on the [go-simd/floats](https://github.com/go-simd/floats)
+  kernels, bit-identical to the loops they replace. The row `SolveIVP
+  Diffusion200 LSODA` (a 200-equation diffusion problem, where those kernels
+  apply) is in [docs/perf-table-arm64.md](docs/perf-table-arm64.md), measured
+  against SciPy's LSODA on the same problem.
 * **Verified.** Fixtures from SciPy and mpmath, the netlib Fortran as a second
   oracle, a negative control on the coefficients, 100 % statement coverage
   with `-race`, CI lanes on amd64, arm64, riscv64, loong64, ppc64le, s390x,
