@@ -87,6 +87,10 @@ func cmin(a, b float64) float64 {
 
 // vmnorm is the weighted max-norm max_i |v_i| w_i (vmnorm.f).
 func vmnorm(v, w []float64) float64 {
+	if len(v) >= simdMin {
+		// Bit-identical to the loop below (fmax from +0, a NaN product loses).
+		return floats.MaxAbsMul(v, w)
+	}
 	vm := 0.0
 	for i, x := range v {
 		vm = cmax(vm, math.Abs(x)*w[i])
